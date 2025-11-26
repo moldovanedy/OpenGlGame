@@ -1,18 +1,23 @@
 #include <iostream>
 #include <rendering/resources/vertex_buffers.hpp>
 
+#include "glm/ext/scalar_uint_sized.hpp"
+
 using namespace Rendering::Resources;
 
 VertexBuffers::VertexBuffers(
+    const uint32_t resourceId,
     const GLenum primitiveTopology,
     const float *vertices,
     const uint32_t vertexCount,
-    const std::vector<ShaderVertexAttributeDescriptor_t> &attributeDescriptors,
+    const VertexAttributeDescriptors &vertexAttributeDescriptors,
     const uint32_t *indices,
     const uint32_t indexCount
 ) : m_vertexCount(vertexCount), m_indexCount(indexCount), m_primitiveTopology(primitiveTopology) {
+    m_resourceId = resourceId;
+
     uint32_t totalVertexByteSize = 0;
-    for (const ShaderVertexAttributeDescriptor_t &attributeDescriptor: attributeDescriptors) {
+    for (const VertexAttributeDescriptor_t &attributeDescriptor: vertexAttributeDescriptors.getVector()) {
         totalVertexByteSize += attributeDescriptor.NumBytesUsed;
     }
 
@@ -42,7 +47,7 @@ VertexBuffers::VertexBuffers(
             GL_STATIC_DRAW);
     }
 
-    for (const ShaderVertexAttributeDescriptor_t &attributeDescriptor: attributeDescriptors) {
+    for (const VertexAttributeDescriptor_t &attributeDescriptor: vertexAttributeDescriptors.getVector()) {
         glVertexAttribPointer(
             attributeDescriptor.Location,
             static_cast<int32_t>(attributeDescriptor.NumBytesUsed) / 3,

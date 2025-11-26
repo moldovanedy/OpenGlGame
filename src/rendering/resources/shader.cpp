@@ -7,7 +7,9 @@
 
 using namespace Rendering::Resources;
 
-Shader::Shader(const char *vertexSrc, const char *fragmentSrg) {
+Shader::Shader(const uint32_t resourceId, const char *vertexSrc, const char *fragmentSrg) {
+    m_resourceId = resourceId;
+
     const uint32_t sVertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(sVertex, 1, &vertexSrc, nullptr);
     glCompileShader(sVertex);
@@ -27,12 +29,12 @@ Shader::Shader(const char *vertexSrc, const char *fragmentSrg) {
         throw std::runtime_error("Failed to compile fragment shader.");
     }
 
-    m_id = glCreateProgram();
-    glAttachShader(m_id, sVertex);
-    glAttachShader(m_id, sFragment);
+    m_glId = glCreateProgram();
+    glAttachShader(m_glId, sVertex);
+    glAttachShader(m_glId, sFragment);
 
-    glLinkProgram(m_id);
-    success = isCompiledSuccessfully(m_id, ShaderType::CompiledProgram);
+    glLinkProgram(m_glId);
+    success = isCompiledSuccessfully(m_glId, ShaderType::CompiledProgram);
     if (!success) {
         glDeleteShader(sVertex);
         glDeleteShader(sFragment);
@@ -45,8 +47,8 @@ Shader::Shader(const char *vertexSrc, const char *fragmentSrg) {
 }
 
 Shader::~Shader() {
-    glDeleteProgram(m_id);
-    m_id = 0;
+    glDeleteProgram(m_glId);
+    m_glId = 0;
 }
 
 bool Shader::isCompiledSuccessfully(const uint32_t shaderId, const ShaderType type) {

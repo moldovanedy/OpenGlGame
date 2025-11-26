@@ -4,16 +4,20 @@
 #include "resource_manager.hpp"
 
 namespace Rendering {
-    namespace Resources {
-        class VertexBuffers;
-    }
-
     class DrawOperation {
         const Resources::Shader *m_shaderRef;
         const Resources::VertexBuffers *m_vertexBuffersRef;
+        const Resources::VertexAttributeDescriptors *m_vertexAttributeDescriptorsRef;
+
+        uint64_t sortKey = 0;
 
     public:
-        DrawOperation(const Resources::Shader &shader, const Resources::VertexBuffers &vertexBuffers);
+        DrawOperation(
+            const Resources::Shader &shader,
+            const Resources::VertexBuffers &vertexBuffers,
+            const Resources::VertexAttributeDescriptors &vertexAttributeDescriptors);
+
+        [[nodiscard]] uint64_t getSortKey() const { return sortKey; }
 
         void changeState(ResourceManager::ResourceTypeFlags stateChanges) const;
 

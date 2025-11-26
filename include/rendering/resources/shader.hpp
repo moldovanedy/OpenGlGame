@@ -13,12 +13,12 @@ namespace Rendering::Resources {
             CompiledProgram,
         };
 
-        uint32_t m_id;
+        uint32_t m_glId;
 
         static bool isCompiledSuccessfully(uint32_t shaderId, ShaderType type);
 
     public:
-        Shader(const char *vertexSrc, const char *fragmentSrg);
+        Shader(uint32_t resourceId, const char *vertexSrc, const char *fragmentSrg);
 
         ~Shader();
 
@@ -30,7 +30,7 @@ namespace Rendering::Resources {
 
         Shader &operator=(Shader &&) = delete;
 
-        [[nodiscard]] uint32_t getGlId() const { return m_id; }
+        [[nodiscard]] uint32_t getGlId() const { return m_glId; }
     };
 }
 
