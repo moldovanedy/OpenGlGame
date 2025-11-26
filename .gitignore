@@ -1,5 +1,33 @@
-.idea/
-buildDir/
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
 
-subprojects/*
-!subprojects/*.wrap
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+
+# IDE-specific directories
+.vs/
+.idea/
+.vscode/
+
+# ReSharper is a .NET coding add-in
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# TeamCity is a build add-in
+_TeamCity*
+
+# DotCover is a Code Coverage Tool
+*.dotCover
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!**/packages/build/

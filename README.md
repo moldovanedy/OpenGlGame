@@ -1,3 +1,3 @@
 # Graphics project
 
-A 3D mini-game made with OpenGL + GLFW in C++.
+A 3D mini-game made with OpenTK in C#.
