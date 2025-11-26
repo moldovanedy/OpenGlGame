@@ -2,30 +2,31 @@
 #define GAME_RENDERING_RENDERER_HPP
 
 #include <vector>
+#include <cstdint>
 
-#include "operations/render_operation.hpp"
+#include "draw_operation.hpp"
 
 namespace Rendering {
     class Renderer {
-        std::vector<Operations::RenderOperation> m_ops;
+    public:
+        struct RenderParams_t {
+            int FramebufferWidth;
+            int FramebufferHeight;
+        };
+
+    private:
+        std::vector<DrawOperation> m_ops;
 
         uint64_t m_lastUniqueKey = 0;
-        bool m_needsSorting = false;
 
     public:
-        void render();
+        void render(const RenderParams_t &params);
 
         void clearCommands();
 
-        void addCommand();
+        void addCommand(const DrawOperation &drawOp);
 
-        /**
-         * This should rarely be used. Oftentimes, it's more efficient to completely clear the command vector and
-         * recreate it from scratch.
-         * @param key 
-         * @return 
-         */
-        bool updateCommand(uint64_t key);
+        // bool updateCommand(uint64_t key);
     };
 }
 

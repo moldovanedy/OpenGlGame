@@ -4,17 +4,15 @@
 #include "main_info.hpp"
 
 Window::Window(const bool isFullscreen, const int width, const int height) {
-    const int result = glfwInit();
-    if (result == GLFW_FALSE) {
-        throw std::runtime_error("Failed to initialize GLFW");
-    }
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, MainInfo::MinOpenGlMajorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, MainInfo::MinOpenGlMinorVersion);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    //MSAA 4x
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -59,7 +57,6 @@ Window::~Window() {
     }
 
     glfwDestroyWindow(m_glfwWindow);
-    glfwTerminate();
     m_glfwWindow = nullptr;
 }
 
@@ -85,14 +82,34 @@ bool Window::shouldCloseWindow() const {
     return glfwWindowShouldClose(m_glfwWindow);
 }
 
+int Window::getFramebufferWidth() const {
+    int width;
+    int height;
+    glfwGetFramebufferSize(m_glfwWindow, &width, &height);
+
+    return width;
+}
+
+int Window::getFramebufferHeight() const {
+    int width;
+    int height;
+    glfwGetFramebufferSize(m_glfwWindow, &width, &height);
+
+    return height;
+}
+
 void Window::swapBuffers() const {
     glfwSwapBuffers(m_glfwWindow);
 }
 
 #pragma region Events
 
-void Window::resize([[maybe_unused]] GLFWwindow *glfwWindow, const int width, const int height) {
-    glViewport(0, 0, width, height);
+void Window::resize(GLFWwindow *glfwWindow, [[maybe_unused]] const int width, [[maybe_unused]] const int height) {
+    int fbWidth;
+    int fbHeight;
+    glfwGetFramebufferSize(glfwWindow, &fbWidth, &fbHeight);
+
+    glViewport(0, 0, fbWidth, fbHeight);
 }
 
 #pragma endregion //Events

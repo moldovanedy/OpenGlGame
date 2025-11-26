@@ -26,6 +26,10 @@ public:
 
     [[nodiscard]] bool shouldCloseWindow() const;
 
+    [[nodiscard]] int getFramebufferWidth() const;
+
+    [[nodiscard]] int getFramebufferHeight() const;
+
     void swapBuffers() const;
 
 #pragma region Events

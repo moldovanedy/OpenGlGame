@@ -1,5 +1,7 @@
 src += files(
     'renderer.cpp',
-
-    'glad.c'
+    'resource_manager.cpp',
+    'draw_operation.cpp'
 )
+
+subdir('resources')
