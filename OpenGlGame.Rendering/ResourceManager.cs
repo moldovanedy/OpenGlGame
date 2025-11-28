@@ -6,7 +6,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenGlGame.Rendering;
 
-public class ResourceManager
+public class ResourceManager : IDisposable
 {
     public static ResourceManager Instance
     {
@@ -35,6 +35,26 @@ public class ResourceManager
         _freeTextureResIds.Push(0);
         _freeVertBufResIds.Push(0);
         _freeVertAttribDescriptorsResIds.Push(0);
+    }
+
+    public void Dispose()
+    {
+        foreach (WeakReference weakReference in _shaders.Values)
+        {
+            ((IDisposable?)weakReference.Target)?.Dispose();
+        }
+
+        foreach (WeakReference weakReference in _textures.Values)
+        {
+            ((IDisposable?)weakReference.Target)?.Dispose();
+        }
+
+        foreach (WeakReference weakReference in _vertexBuffers.Values)
+        {
+            ((IDisposable?)weakReference.Target)?.Dispose();
+        }
+
+        GC.SuppressFinalize(this);
     }
 
     public Shader? GetShader(string id)

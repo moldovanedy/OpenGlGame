@@ -14,13 +14,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\OpenGlGame.Rendering\OpenGlGame.Rendering.csproj" />
+        <ProjectReference Include="..\OpenGlGame.ECS\OpenGlGame.ECS.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Shaders\**">
-            <TargetPath>Shaders\%(Filename)%(Extension)</TargetPath>
+        <None Include="Assets\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
-
 </Project>

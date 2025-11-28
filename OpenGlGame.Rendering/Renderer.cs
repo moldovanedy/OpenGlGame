@@ -32,25 +32,10 @@ public class Renderer
     internal const int VERTEX_BUFFER_OFFSET = 0;
     internal const ulong VERTEX_BUFFER_MASK = 0x0fffUL;
 
-    public static Renderer Instance
-    {
-        get
-        {
-            _instance ??= new Renderer();
-            return _instance;
-        }
-    }
-
-    private static Renderer? _instance;
-
     private readonly List<OperationBase> _commands = [];
 
     //set what's modified initially
     private ulong _lastFrameModifiedStates = SHADER_PROGRAM_MASK | VERTEX_BUFFER_MASK;
-
-    private Renderer()
-    {
-    }
 
     public void Render(int fbWidth, int fbHeight)
     {
@@ -65,6 +50,8 @@ public class Renderer
         });
 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        //TODO: this is a state, it needs to be either enabled or disabled at runtime depending on the object
+        // GL.Enable(EnableCap.CullFace);
 
         //keep 16:9 aspect ratio
         float actualAspectRatio = fbWidth / (float)fbHeight;
@@ -100,10 +87,6 @@ public class Renderer
         }
 
         GL.Viewport(0, 0, fbWidth, fbHeight);
-    }
-
-    public void ClearCommands()
-    {
         _commands.Clear();
     }
 

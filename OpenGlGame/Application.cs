@@ -1,6 +1,6 @@
 using System;
+using OpenGlGame.ECS.Systems;
 using OpenGlGame.Rendering;
-using OpenGlGame.Rendering.Operations;
 using OpenGlGame.Rendering.Resources;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
@@ -8,35 +8,36 @@ using OpenTK.Windowing.Desktop;
 
 namespace OpenGlGame;
 
-public class Window : GameWindow
+public class Application : IDisposable
 {
+    private readonly Renderer _renderer = new();
+    private readonly GlobalSystem _globalSystem;
+
     private VertexAttribDescriptors? _vertexAttributeDescriptors;
     private Shader? _shader;
 
     private VertexBuffers? _triangleVertexBuffers;
     private VertexBuffers? _indexedQuadVertexBuffers;
 
-    public Window(bool isFullscreen, int width, int height)
-        : base(
-            GameWindowSettings.Default,
-            new NativeWindowSettings
-            {
-                WindowState = isFullscreen ? WindowState.Fullscreen : WindowState.Normal,
-                ClientSize = (width, height),
-                MinimumClientSize = (600, 400),
-                Title = "OpenGL game",
-                NumberOfSamples = 4,
-                Vsync = VSyncMode.On
-            })
+    public Application()
+    {
+        _globalSystem = new GlobalSystem();
+    }
+
+    public void Dispose()
+    {
+        ResourceManager.Instance.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    internal void Load()
     {
         GL.Enable(EnableCap.Multisample);
         GL.Enable(EnableCap.DepthTest);
+        GL.Enable(EnableCap.FramebufferSrgb);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    }
 
-    protected override void OnLoad()
-    {
-        base.OnLoad();
+        _globalSystem.StartDrawing();
 
         float[] triangleVertices =
         [
@@ -55,7 +56,7 @@ public class Window : GameWindow
                     1, 3, VertexAttribPointerType.Float, 24, 12)
             );
 
-        _shader = ResourceManager.Instance.GetShader("/Shaders/basic_unlit");
+        _shader = ResourceManager.Instance.GetShader("/Assets/Shaders/basic_unlit");
         if (_shader == null)
         {
             throw new NullReferenceException("Shader could not compile");
@@ -97,10 +98,8 @@ public class Window : GameWindow
             );
     }
 
-    protected override void OnRenderFrame(FrameEventArgs e)
+    internal void Update(FrameEventArgs e, GameWindow window)
     {
-        base.OnRenderFrame(e);
-
         if (
             _shader == null
             || _triangleVertexBuffers == null
@@ -110,22 +109,28 @@ public class Window : GameWindow
             throw new NullReferenceException("Resources missing");
         }
 
-        Renderer.Instance.ClearCommands();
-        Renderer.Instance.AddCommand(new DrawOperation(_shader, _triangleVertexBuffers, _vertexAttributeDescriptors));
-        Renderer.Instance.AddCommand(
-            new DrawOperation(
-                _shader,
-                _indexedQuadVertexBuffers,
-                _vertexAttributeDescriptors));
+        _globalSystem.Update(
+            new GlobalSystem.FrameParameters
+            {
+                Width = window.FramebufferSize.X,
+                Height = window.FramebufferSize.Y
+            }
+        );
 
-        Renderer.Instance.Render(FramebufferSize.X, FramebufferSize.Y);
-        SwapBuffers();
+        // _renderer.AddCommand(new DrawOperation(_shader, _triangleVertexBuffers, _vertexAttributeDescriptors));
+        // _renderer.AddCommand(
+        //     new DrawOperation(
+        //         _shader,
+        //         _indexedQuadVertexBuffers,
+        //         _vertexAttributeDescriptors));
+        //
+        // _renderer.Render(window.FramebufferSize.X, window.FramebufferSize.Y);
+
+        window.SwapBuffers();
     }
 
-    protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
+    internal static void FramebufferResize(FramebufferResizeEventArgs e)
     {
-        base.OnFramebufferResize(e);
-
         GL.Viewport(0, 0, e.Width, e.Height);
     }
 }
