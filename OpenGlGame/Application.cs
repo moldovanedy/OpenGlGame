@@ -1,28 +1,19 @@
 using System;
-using OpenGlGame.ECS.Systems;
+using System.Collections.Generic;
 using OpenGlGame.Rendering;
-using OpenGlGame.Rendering.Resources;
+using OpenGlGame.SceneSystem;
+using OpenGlGame.SceneSystem.Components;
+using OpenGlGame.SceneSystem.Prefabs;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace OpenGlGame;
 
 public class Application : IDisposable
 {
-    private readonly Renderer _renderer = new();
-    private readonly GlobalSystem _globalSystem;
-
-    private VertexAttribDescriptors? _vertexAttributeDescriptors;
-    private Shader? _shader;
-
-    private VertexBuffers? _triangleVertexBuffers;
-    private VertexBuffers? _indexedQuadVertexBuffers;
-
-    public Application()
-    {
-        _globalSystem = new GlobalSystem();
-    }
+    private readonly SceneManager _sceneManager = new();
 
     public void Dispose()
     {
@@ -37,94 +28,49 @@ public class Application : IDisposable
         GL.Enable(EnableCap.FramebufferSrgb);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-        _globalSystem.StartDrawing();
-
-        float[] triangleVertices =
-        [
-            // positions         // colors
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top 
-        ];
-
-        _vertexAttributeDescriptors =
-            ResourceManager.Instance.CreateVertexAttribDescriptors(
-                "triangle_with_vertex_colors",
-                new VertexAttribDescriptors.AttribDescriptor(
-                    0, 3, VertexAttribPointerType.Float, 24, 0),
-                new VertexAttribDescriptors.AttribDescriptor(
-                    1, 3, VertexAttribPointerType.Float, 24, 12)
-            );
-
-        _shader = ResourceManager.Instance.GetShader("/Assets/Shaders/basic_unlit");
-        if (_shader == null)
+        ColoredTriangle tri1 = new();
+        if (tri1.GetComponent(nameof(Transform3D)) is Transform3D transform1)
         {
-            throw new NullReferenceException("Shader could not compile");
+            transform1.Position = new Vector3(-0.5f, 1.0f, 2.0f);
+            transform1.Scale = new Vector3(1.5f, 0.75f, 1.5f);
         }
 
-        float[] quadVertices =
+        ColoredTriangle tri2 = new();
+        if (tri2.GetComponent(nameof(Transform3D)) is Transform3D transform2)
+        {
+            transform2.Position = new Vector3(3.0f, 1.0f, 1.1f);
+            transform2.Rotation = new Vector3(0.0f, float.DegreesToRadians(-45.0f), 0.0f);
+        }
+
+        ColoredTriangle tri3 = new();
+        if (tri3.GetComponent(nameof(Transform3D)) is Transform3D transform3)
+        {
+            transform3.Position = new Vector3(-4.0f, -0.5f, 1.15f);
+            transform3.Rotation = new Vector3(0.0f, 0.0f, float.DegreesToRadians(-135.0f));
+            transform3.Scale = new Vector3(1.0f, 1.5f, 1.0f);
+        }
+
+        SceneManager.WorldChunk chunk1 = new(
+            [tri1, tri2, tri3],
+            Vector3.Zero);
+
+        List<SceneManager.WorldChunk> chunks =
         [
-            // positions         // colors
-            -0.25f, 0.75f, -0.01f, 1.0f, 0.0f, 0.0f,
-            -0.25f, -0.25f, -0.01f, 1.0f, 0.0f, 0.0f,
-            0.75f, -0.25f, -0.01f, 0.0f, 0.0f, 1.0f,
-            0.75f, 0.75f, -0.01f, 0.0f, 0.0f, 1.0f
+            chunk1,
+            new([], Vector3.Zero),
+            new([], Vector3.Zero),
+            new([], Vector3.Zero),
+            new([], Vector3.Zero)
         ];
-
-        uint[] indices =
-        [
-            0, 1, 3,
-            1, 2, 3
-        ];
-
-        _triangleVertexBuffers =
-            ResourceManager.Instance.CreateVertexBuffers(
-                "triangle",
-                PrimitiveType.Triangles,
-                _vertexAttributeDescriptors,
-                triangleVertices,
-                3
-            );
-
-        _indexedQuadVertexBuffers =
-            ResourceManager.Instance.CreateVertexBuffers(
-                "indexed_quad",
-                PrimitiveType.Triangles,
-                _vertexAttributeDescriptors,
-                quadVertices,
-                4,
-                indices,
-                6
-            );
+        _sceneManager.SetLevel(chunks);
     }
 
     internal void Update(FrameEventArgs e, GameWindow window)
     {
-        if (
-            _shader == null
-            || _triangleVertexBuffers == null
-            || _vertexAttributeDescriptors == null
-            || _indexedQuadVertexBuffers == null)
-        {
-            throw new NullReferenceException("Resources missing");
-        }
-
-        _globalSystem.Update(
-            new GlobalSystem.FrameParameters
-            {
-                Width = window.FramebufferSize.X,
-                Height = window.FramebufferSize.Y
-            }
-        );
-
-        // _renderer.AddCommand(new DrawOperation(_shader, _triangleVertexBuffers, _vertexAttributeDescriptors));
-        // _renderer.AddCommand(
-        //     new DrawOperation(
-        //         _shader,
-        //         _indexedQuadVertexBuffers,
-        //         _vertexAttributeDescriptors));
-        //
-        // _renderer.Render(window.FramebufferSize.X, window.FramebufferSize.Y);
+        _sceneManager.Update(
+            new SceneManager.FrameParameters(
+                window.FramebufferSize.X,
+                window.FramebufferSize.Y));
 
         window.SwapBuffers();
     }

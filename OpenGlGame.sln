@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGlGame", "OpenGlGame\Op
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGlGame.Rendering", "OpenGlGame.Rendering\OpenGlGame.Rendering.csproj", "{E04A5FF2-0DD6-4A2A-8623-73628E18F309}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGlGame.ECS", "OpenGlGame.ECS\OpenGlGame.ECS.csproj", "{DE17DB03-42B7-4634-9D5F-6C0E8C3115D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGlGame.SceneSystem", "OpenGlGame.SceneSystem\OpenGlGame.SceneSystem.csproj", "{DE17DB03-42B7-4634-9D5F-6C0E8C3115D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,60 +1,99 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using OpenGlGame.ECS.Components;
+using OpenTK.Mathematics;
+using OpenGlGame.Rendering;
 
-namespace OpenGlGame.ECS.Systems;
+namespace OpenGlGame.SceneSystem;
 
-public class WorldManagerSystem
+public class SceneManager
 {
     public class WorldChunk
     {
         public static Vector3 Extents { get; } = new(50, 25, 50);
 
-        public object[][] StoredEntities { get; }
+        public GameObject[] GameObjects { get; }
         public Vector3 Center { get; }
 
-        internal List<int> RuntimeEntities { get; set; } = [];
-
-        public WorldChunk(object[][] storedEntities, Vector3 center)
+        public WorldChunk(GameObject[] gameObjects, Vector3 center)
         {
-            StoredEntities = storedEntities;
+            GameObjects = gameObjects;
             Center = center;
         }
     }
 
-    private readonly SceneRegistry _registry;
+    public record FrameParameters(int FramebufferWidth, int FramebufferHeight);
 
-    private List<WorldChunk>? _levelChunks;
+
+    private List<WorldChunk> _levelChunks = [];
+    private readonly Renderer _systemRenderer = new();
+
+    private readonly List<WorldChunk> _currentChunks = [];
     private int _currentChunkIndex;
-
-    public WorldManagerSystem(SceneRegistry registry)
-    {
-        _registry = registry;
-    }
-
 
     public void SetLevel(List<WorldChunk> allChunks)
     {
+        if (allChunks.Count < 5)
+        {
+            throw new ArgumentException("The number of chunks must be at least 5.");
+        }
+
         _levelChunks = allChunks;
-        LoadChunk(allChunks[0]);
+        for (int i = 0; i < 3; i++)
+        {
+            LoadChunk(allChunks[i]);
+        }
     }
 
-    public void Update()
+    public void Update(FrameParameters frameParams)
     {
-        if (_levelChunks == null)
+        var cameraPos = new Vector3(0.0f, 0.0f, -3.0f);
+        switch (_levelChunks.Count)
         {
-            return;
+            case 0:
+                return;
+            case < 5:
+                throw new Exception("Not enough level chunks");
         }
 
-        if (_levelChunks.Count < 5)
+        CheckChunkLoading(cameraPos);
+        _systemRenderer.UpdateViewProjectionMatrix(cameraPos);
+
+        foreach (WorldChunk chunk in _currentChunks)
         {
-            throw new Exception("Not enough level chunks");
+            foreach (GameObject gameObject in chunk.GameObjects)
+            {
+                gameObject.Update(0.016);
+            }
         }
 
+        _systemRenderer.Render(frameParams.FramebufferWidth, frameParams.FramebufferHeight);
+    }
+
+    private void LoadChunk(WorldChunk chunk)
+    {
+        _currentChunks.Add(chunk);
+        foreach (GameObject gameObject in chunk.GameObjects)
+        {
+            gameObject.SystemRenderer = _systemRenderer;
+            gameObject.EnterScene();
+        }
+    }
+
+    private void UnloadChunk(WorldChunk chunk)
+    {
+        _currentChunks.Remove(chunk);
+        foreach (GameObject gameObject in chunk.GameObjects)
+        {
+            gameObject.ExitScene();
+            gameObject.SystemRenderer = null;
+        }
+    }
+
+    private void CheckChunkLoading(Vector3 cameraPos)
+    {
         if (
             !IsPointInsideAabb(
-                CameraSystem.Instance.PlayerPosition,
+                cameraPos,
                 _levelChunks[_currentChunkIndex].Center,
                 WorldChunk.Extents))
         {
@@ -65,7 +104,7 @@ public class WorldManagerSystem
 
             if (_currentChunkIndex != 0
                 && IsPointInsideAabb(
-                    CameraSystem.Instance.PlayerPosition,
+                    cameraPos,
                     _levelChunks[_currentChunkIndex - 1].Center,
                     WorldChunk.Extents))
             {
@@ -79,7 +118,7 @@ public class WorldManagerSystem
             }
             else if (_currentChunkIndex < _levelChunks.Count - 1
                      && IsPointInsideAabb(
-                         CameraSystem.Instance.PlayerPosition,
+                         cameraPos,
                          _levelChunks[_currentChunkIndex + 1].Center,
                          WorldChunk.Extents))
             {
@@ -96,38 +135,6 @@ public class WorldManagerSystem
                 throw new Exception("Unexpected condition: outside of adjacent chunks");
             }
         }
-    }
-
-    private void LoadChunk(WorldChunk chunk)
-    {
-        foreach (object[] entity in chunk.StoredEntities)
-        {
-            int id = _registry.CreateEntity();
-            chunk.RuntimeEntities.Add(id);
-
-            foreach (object component in entity)
-            {
-                switch (component)
-                {
-                    case Transform3D transform3D:
-                        _registry.AddComponent(id, transform3D);
-                        break;
-                    case MeshRenderer meshRenderer:
-                        _registry.AddComponent(id, meshRenderer);
-                        break;
-                }
-            }
-        }
-    }
-
-    private void UnloadChunk(WorldChunk chunk)
-    {
-        foreach (int id in chunk.RuntimeEntities)
-        {
-            _registry.DestroyEntity(id);
-        }
-
-        chunk.RuntimeEntities.Clear();
     }
 
     private static bool IsPointInsideAabb(Vector3 point, Vector3 cubeCenter, Vector3 cubeSize)

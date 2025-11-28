@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using OpenGlGame.Rendering.Operations;
 using OpenTK.Graphics.OpenGL;
+using Vector3 = OpenTK.Mathematics.Vector3;
+using Matrix4 = OpenTK.Mathematics.Matrix4;
 
 namespace OpenGlGame.Rendering;
 
@@ -36,6 +38,15 @@ public class Renderer
 
     //set what's modified initially
     private ulong _lastFrameModifiedStates = SHADER_PROGRAM_MASK | VERTEX_BUFFER_MASK;
+    private Matrix4 _viewProjectionMatrix = Matrix4.Identity;
+
+    public void UpdateViewProjectionMatrix(Vector3 cameraPosition)
+    {
+        _viewProjectionMatrix =
+            Matrix4.CreateTranslation(cameraPosition)
+            * Matrix4.CreatePerspectiveFieldOfView(
+                float.DegreesToRadians(60), ASPECT_RATIO, 0.1f, 100f);
+    }
 
     public void Render(int fbWidth, int fbHeight)
     {
@@ -102,6 +113,10 @@ public class Renderer
         if ((thisOrderKey & SHADER_PROGRAM_MASK) != (lastOrderKey & SHADER_PROGRAM_MASK))
         {
             GL.UseProgram(drawOp.ShaderDep.GlId);
+
+            Matrix4 viewProjMatrix = _viewProjectionMatrix;
+            drawOp.ShaderDep.SetUniformMat4("viewProjection", ref viewProjMatrix);
+
             _lastFrameModifiedStates |= SHADER_PROGRAM_MASK;
         }
 

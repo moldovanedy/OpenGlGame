@@ -1,20 +1,27 @@
 using System;
 using OpenGlGame.Rendering.Resources;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace OpenGlGame.Rendering.Operations;
 
 public class DrawOperation : OperationBase
 {
-    public Shader ShaderDep { get; private set; }
-    public VertexBuffers VertexBuffersDep { get; private set; }
-    public VertexAttribDescriptors VertexAttribsDep { get; private set; }
+    public Shader ShaderDep { get; }
+    public VertexBuffers VertexBuffersDep { get; }
+    public VertexAttribDescriptors VertexAttribsDep { get; }
+    public Matrix4 ModelMatrix { get; }
 
-    public DrawOperation(Shader shaderDep, VertexBuffers vertexBuffersDep, VertexAttribDescriptors vertexAttribsDep)
+    public DrawOperation(
+        Shader shaderDep,
+        VertexBuffers vertexBuffersDep,
+        VertexAttribDescriptors vertexAttribsDep,
+        Matrix4 modelMatrix)
     {
         ShaderDep = shaderDep;
         VertexBuffersDep = vertexBuffersDep;
         VertexAttribsDep = vertexAttribsDep;
+        ModelMatrix = modelMatrix;
     }
 
     public override ulong ComputeOrderKey()
@@ -27,6 +34,12 @@ public class DrawOperation : OperationBase
 
     internal void Draw()
     {
+        Matrix4 modelMatrix = ModelMatrix;
+        ShaderDep.SetUniformMat4("model", ref modelMatrix);
+
+        Matrix4 transInvMatrix = Matrix4.Transpose(Matrix4.Invert(modelMatrix));
+        ShaderDep.SetUniformMat4("transposedInverseModel", ref transInvMatrix);
+
         if (VertexBuffersDep.IndexCount == 0)
         {
             GL.DrawArrays(VertexBuffersDep.PrimitiveTopology, 0, VertexBuffersDep.VertexCount);

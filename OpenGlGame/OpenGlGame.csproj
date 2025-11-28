@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\OpenGlGame.Rendering\OpenGlGame.Rendering.csproj" />
-        <ProjectReference Include="..\OpenGlGame.ECS\OpenGlGame.ECS.csproj" />
+        <ProjectReference Include="..\OpenGlGame.SceneSystem\OpenGlGame.SceneSystem.csproj" />
     </ItemGroup>
 
     <ItemGroup>
