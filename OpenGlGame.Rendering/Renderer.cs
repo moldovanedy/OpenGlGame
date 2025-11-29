@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using OpenGlGame.Rendering.Operations;
 using OpenTK.Graphics.OpenGL;
-using Vector3 = OpenTK.Mathematics.Vector3;
 using Matrix4 = OpenTK.Mathematics.Matrix4;
 
 namespace OpenGlGame.Rendering;
 
 public class Renderer
 {
-    private const float ASPECT_RATIO = 16.0f / 9.0f;
+    public const float ASPECT_RATIO = 16.0f / 9.0f;
 
     internal const int RENDER_PASS_OFFSET = 60;
     internal const ulong RENDER_PASS_MASK = 0x0fUL << 60;
@@ -38,14 +37,12 @@ public class Renderer
 
     //set what's modified initially
     private ulong _lastFrameModifiedStates = SHADER_PROGRAM_MASK | VERTEX_BUFFER_MASK;
+
     private Matrix4 _viewProjectionMatrix = Matrix4.Identity;
 
-    public void UpdateViewProjectionMatrix(Vector3 cameraPosition)
+    public void UpdateViewProjectionMatrix(Matrix4 viewProjectionMatrix)
     {
-        _viewProjectionMatrix =
-            Matrix4.CreateTranslation(cameraPosition)
-            * Matrix4.CreatePerspectiveFieldOfView(
-                float.DegreesToRadians(60), ASPECT_RATIO, 0.1f, 100f);
+        _viewProjectionMatrix = viewProjectionMatrix;
     }
 
     public void Render(int fbWidth, int fbHeight)
@@ -118,6 +115,17 @@ public class Renderer
             drawOp.ShaderDep.SetUniformMat4("viewProjection", ref viewProjMatrix);
 
             _lastFrameModifiedStates |= SHADER_PROGRAM_MASK;
+        }
+
+        if ((thisOrderKey & TEXTURE_ATTACHMENT_MASK) != (lastOrderKey & TEXTURE_ATTACHMENT_MASK))
+        {
+            //TODO: add textures to the draw operation
+
+            // for (int i = 0; i < drawOp.Textures.Length; i++)
+            // {
+            //     GL.ActiveTexture(TextureUnit.Texture0 + i);
+            //     GL.BindTexture(TextureTarget.Texture2D, drawOp.Textures[i].GlTextureId);
+            // }
         }
 
         if ((thisOrderKey & VERTEX_BUFFER_MASK) != (lastOrderKey & VERTEX_BUFFER_MASK))

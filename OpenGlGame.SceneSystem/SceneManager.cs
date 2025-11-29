@@ -9,20 +9,22 @@ public class SceneManager
 {
     public class WorldChunk
     {
-        public static Vector3 Extents { get; } = new(50, 25, 50);
-
         public GameObject[] GameObjects { get; }
         public Vector3 Center { get; }
+        public Vector3 Extents { get; }
 
-        public WorldChunk(GameObject[] gameObjects, Vector3 center)
+        public WorldChunk(GameObject[] gameObjects, Vector3 center, Vector3 extents)
         {
             GameObjects = gameObjects;
             Center = center;
+            Extents = extents;
         }
     }
 
-    public record FrameParameters(int FramebufferWidth, int FramebufferHeight);
+    public record FrameParameters(int FramebufferWidth, int FramebufferHeight, double DeltaTime);
 
+
+    public Camera PlayerCamera { get; private set; } = new();
 
     private List<WorldChunk> _levelChunks = [];
     private readonly Renderer _systemRenderer = new();
@@ -46,7 +48,6 @@ public class SceneManager
 
     public void Update(FrameParameters frameParams)
     {
-        var cameraPos = new Vector3(0.0f, 0.0f, -3.0f);
         switch (_levelChunks.Count)
         {
             case 0:
@@ -55,14 +56,16 @@ public class SceneManager
                 throw new Exception("Not enough level chunks");
         }
 
-        CheckChunkLoading(cameraPos);
-        _systemRenderer.UpdateViewProjectionMatrix(cameraPos);
+        PlayerCamera.Update(frameParams.DeltaTime);
+
+        CheckChunkLoading(PlayerCamera.Position);
+        _systemRenderer.UpdateViewProjectionMatrix(PlayerCamera.GetViewProjectionMatrix());
 
         foreach (WorldChunk chunk in _currentChunks)
         {
             foreach (GameObject gameObject in chunk.GameObjects)
             {
-                gameObject.Update(0.016);
+                gameObject.Update(frameParams.DeltaTime);
             }
         }
 
@@ -95,7 +98,7 @@ public class SceneManager
             !IsPointInsideAabb(
                 cameraPos,
                 _levelChunks[_currentChunkIndex].Center,
-                WorldChunk.Extents))
+                _levelChunks[_currentChunkIndex].Extents))
         {
             if (_levelChunks.Count == 1)
             {
@@ -106,7 +109,7 @@ public class SceneManager
                 && IsPointInsideAabb(
                     cameraPos,
                     _levelChunks[_currentChunkIndex - 1].Center,
-                    WorldChunk.Extents))
+                    _levelChunks[_currentChunkIndex].Extents))
             {
                 _currentChunkIndex--;
                 if (_currentChunkIndex - 2 < _levelChunks.Count)
@@ -120,7 +123,7 @@ public class SceneManager
                      && IsPointInsideAabb(
                          cameraPos,
                          _levelChunks[_currentChunkIndex + 1].Center,
-                         WorldChunk.Extents))
+                         _levelChunks[_currentChunkIndex].Extents))
             {
                 _currentChunkIndex++;
                 if (_currentChunkIndex + 2 < _levelChunks.Count)

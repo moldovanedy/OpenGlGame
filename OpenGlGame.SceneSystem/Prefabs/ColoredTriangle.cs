@@ -14,19 +14,33 @@ public class ColoredTriangle : GameObject
 
         float[] triangleVertices =
         [
-            // positions         // colors
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top 
+            // positions         // normals      //texture coords
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom left
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+            0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 1.0f // top 
         ];
 
         VertexAttribDescriptors vertexAttributeDescriptors =
             ResourceManager.Instance.CreateVertexAttribDescriptors(
-                "triangle_with_vertex_colors",
+                "simple_one_texture_model",
                 new VertexAttribDescriptors.AttribDescriptor(
-                    0, 3, VertexAttribPointerType.Float, 24, 0),
+                    0,
+                    3,
+                    VertexAttribPointerType.Float,
+                    8 * sizeof(float),
+                    0),
                 new VertexAttribDescriptors.AttribDescriptor(
-                    1, 3, VertexAttribPointerType.Float, 24, 12)
+                    1,
+                    3,
+                    VertexAttribPointerType.Float,
+                    8 * sizeof(float),
+                    3 * sizeof(float)),
+                new VertexAttribDescriptors.AttribDescriptor(
+                    2,
+                    2,
+                    VertexAttribPointerType.Float,
+                    8 * sizeof(float),
+                    6 * sizeof(float))
             );
 
         Shader? shader = ResourceManager.Instance.GetShader("/Assets/Shaders/basic_lit");

@@ -17,6 +17,7 @@ struct Light {
 
 in vec3 fragPos;
 in vec3 worldSpaceNormal;
+in vec2 textureCoords;
 
 out vec4 fragColor;
 
