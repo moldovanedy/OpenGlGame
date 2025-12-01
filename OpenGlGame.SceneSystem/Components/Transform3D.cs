@@ -47,8 +47,8 @@ public class Transform3D : IGameObjectComponent
             if (Scale == null)
             {
                 matrix =
-                    Matrix4.CreateRotationX(Rotation.Value.X)
-                    * Matrix4.CreateRotationY(Rotation.Value.Y)
+                    Matrix4.CreateRotationY(Rotation.Value.Y)
+                    * Matrix4.CreateRotationX(Rotation.Value.X)
                     * Matrix4.CreateRotationZ(Rotation.Value.Z)
                     * Matrix4.CreateTranslation(Position)
                     ;
@@ -57,8 +57,8 @@ public class Transform3D : IGameObjectComponent
             {
                 matrix =
                     Matrix4.CreateScale(Scale.Value)
-                    * Matrix4.CreateRotationX(Rotation.Value.X)
                     * Matrix4.CreateRotationY(Rotation.Value.Y)
+                    * Matrix4.CreateRotationX(Rotation.Value.X)
                     * Matrix4.CreateRotationZ(Rotation.Value.Z)
                     * Matrix4.CreateTranslation(Position)
                     ;

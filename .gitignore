@@ -31,3 +31,7 @@ _TeamCity*
 **/packages/*
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
+
+# Blender backups
+**/*.blend*
+!**/*.blend

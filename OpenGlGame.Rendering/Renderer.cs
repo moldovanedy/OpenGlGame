@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OpenGlGame.Rendering.Operations;
 using OpenTK.Graphics.OpenGL;
@@ -119,13 +120,13 @@ public class Renderer
 
         if ((thisOrderKey & TEXTURE_ATTACHMENT_MASK) != (lastOrderKey & TEXTURE_ATTACHMENT_MASK))
         {
-            //TODO: add textures to the draw operation
+            if (drawOp.TextureDep == null)
+            {
+                throw new Exception("Texture was changed, but the draw operation doesn't specify a texture dependency");
+            }
 
-            // for (int i = 0; i < drawOp.Textures.Length; i++)
-            // {
-            //     GL.ActiveTexture(TextureUnit.Texture0 + i);
-            //     GL.BindTexture(TextureTarget.Texture2D, drawOp.Textures[i].GlTextureId);
-            // }
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, drawOp.TextureDep.GlTextureId);
         }
 
         if ((thisOrderKey & VERTEX_BUFFER_MASK) != (lastOrderKey & VERTEX_BUFFER_MASK))

@@ -21,7 +21,16 @@ in vec2 textureCoords;
 
 out vec4 fragColor;
 
+uniform sampler2D albedoTexture;
+
+uniform vec2 tiling;
+uniform vec2 offset;
+
 void main()
 {
-    fragColor = vec4(0.2, 0.4, 0.3, 1.0);
+    vec2 uv = textureCoords;
+    uv *= tiling + offset;
+    uv = fract(uv);
+
+    fragColor = texture(albedoTexture, uv);
 }

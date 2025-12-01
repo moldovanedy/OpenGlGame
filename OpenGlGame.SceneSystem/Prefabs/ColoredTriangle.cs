@@ -8,50 +8,31 @@ namespace OpenGlGame.SceneSystem.Prefabs;
 
 public class ColoredTriangle : GameObject
 {
+    private const string VERT_BUFFERS_PATH = "/runtime_gen/triangle";
+
     public ColoredTriangle()
     {
         AddComponent(new Transform3D());
 
         float[] triangleVertices =
         [
-            // positions         // normals      //texture coords
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom left
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
-            0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 1.0f // top 
+            // positions         // normals      //vertex colors
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+            0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f // top 
         ];
 
-        VertexAttribDescriptors vertexAttributeDescriptors =
-            ResourceManager.Instance.CreateVertexAttribDescriptors(
-                "simple_one_texture_model",
-                new VertexAttribDescriptors.AttribDescriptor(
-                    0,
-                    3,
-                    VertexAttribPointerType.Float,
-                    8 * sizeof(float),
-                    0),
-                new VertexAttribDescriptors.AttribDescriptor(
-                    1,
-                    3,
-                    VertexAttribPointerType.Float,
-                    8 * sizeof(float),
-                    3 * sizeof(float)),
-                new VertexAttribDescriptors.AttribDescriptor(
-                    2,
-                    2,
-                    VertexAttribPointerType.Float,
-                    8 * sizeof(float),
-                    6 * sizeof(float))
-            );
-
-        Shader? shader = ResourceManager.Instance.GetShader("/Assets/Shaders/basic_lit");
+        VertexAttribDescriptors vertexAttributeDescriptors = CommonVertexAttribDescriptors.VertexColorsMesh;
+        Shader? shader = ResourceManager.Instance.GetOrCreateShader("/assets/shaders/vert_colors_lit");
         if (shader == null)
         {
             throw new NullReferenceException("Shader could not compile");
         }
 
         VertexBuffers triangleVertexBuffers =
-            ResourceManager.Instance.CreateVertexBuffers(
-                "triangle",
+            ResourceManager.Instance.GetOrCreateVertexBuffers(VERT_BUFFERS_PATH)
+            ?? ResourceManager.Instance.CreateVertexBuffers(
+                VERT_BUFFERS_PATH,
                 PrimitiveType.Triangles,
                 vertexAttributeDescriptors,
                 triangleVertices,

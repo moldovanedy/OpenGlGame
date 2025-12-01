@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenGlGame.Rendering;
+using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.Prefabs;
@@ -52,30 +53,35 @@ public class Application : IDisposable
         GL.Enable(EnableCap.FramebufferSrgb);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+        GenerateRuntimeAssets();
+
         ColoredTriangle tri1 = new();
-        if (tri1.GetComponent(nameof(Transform3D)) is Transform3D transform1)
+        if (tri1.GetComponent(nameof(Transform3D)) is Transform3D triangleTransform)
         {
-            transform1.Position = new Vector3(-0.5f, 1.0f, 2.0f);
-            transform1.Scale = new Vector3(1.5f, 0.75f, 1.5f);
+            triangleTransform.Position = new Vector3(0.0f, -1.5f, 0.0f);
+            triangleTransform.Rotation = new Vector3(float.DegreesToRadians(90.0f), 0.0f, 0.0f);
+            triangleTransform.Scale = new Vector3(30.0f, 30.0f, 1.0f);
         }
 
-        ColoredTriangle tri2 = new();
-        if (tri2.GetComponent(nameof(Transform3D)) is Transform3D transform2)
+        Cube01 cube = new();
+        if (cube.GetComponent(nameof(Transform3D)) is Transform3D cubeTransform)
         {
-            transform2.Position = new Vector3(3.0f, 1.0f, 1.1f);
-            transform2.Rotation = new Vector3(0.0f, float.DegreesToRadians(-45.0f), 0.0f);
+            cubeTransform.Position = new Vector3(5.0f, 0.5f, 3.0f);
         }
 
-        ColoredTriangle tri3 = new();
-        if (tri3.GetComponent(nameof(Transform3D)) is Transform3D transform3)
+        Floor01 floor = new();
+        if (floor.GetComponent(nameof(Transform3D)) is Transform3D floorTransform)
         {
-            transform3.Position = new Vector3(0.0f, -1.5f, 0.0f);
-            transform3.Rotation = new Vector3(float.DegreesToRadians(90.0f), 0.0f, 0.0f);
-            transform3.Scale = new Vector3(30.0f, 30.0f, 30.0f);
+            floorTransform.Position = new Vector3(-2.0f, 0.5f, 3.0f);
+            floorTransform.Rotation = new Vector3(
+                float.DegreesToRadians(0.0f),
+                float.DegreesToRadians(-90.0f),
+                float.DegreesToRadians(-90.0f));
+            floorTransform.Scale = new Vector3(5.0f, 1.0f, 3.0f);
         }
 
         SceneManager.WorldChunk chunk1 = new(
-            [tri1, tri2, tri3],
+            [tri1, cube, floor],
             Vector3.Zero,
             new Vector3(500, 500, 500));
 
@@ -245,5 +251,29 @@ public class Application : IDisposable
     internal static void FramebufferResize(FramebufferResizeEventArgs e)
     {
         GL.Viewport(0, 0, e.Width, e.Height);
+    }
+
+    private static void GenerateRuntimeAssets()
+    {
+        byte[] rawData = new byte[2 * 2 * 4];
+        for (int i = 0; i < rawData.Length; i++)
+        {
+            rawData[i] = 0xff;
+        }
+
+        var texFormat = new Texture.TextureFormat
+        {
+            Width = 2,
+            Height = 2,
+            Format = PixelFormat.Rgba,
+            InternalFormat = PixelInternalFormat.Rgba
+        };
+
+        //generate blank, default texture
+        ResourceManager.Instance.CreateTexture(
+            "default_texture.rgba.raw",
+            rawData,
+            texFormat
+        );
     }
 }

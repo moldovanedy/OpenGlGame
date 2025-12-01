@@ -85,16 +85,7 @@ public class Camera
         _yaw += xOffset;
         _pitch += yOffset;
 
-        if (_pitch > 89.0f)
-        {
-            _pitch = 89.0f;
-        }
-
-        if (_pitch < -89.0f)
-        {
-            _pitch = -89.0f;
-        }
-
+        _pitch = Math.Clamp(_pitch, -89.0f, 89.0f);
         // UpdateCameraVectors();
     }
 

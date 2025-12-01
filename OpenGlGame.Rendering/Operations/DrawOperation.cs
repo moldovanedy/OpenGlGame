@@ -12,16 +12,21 @@ public class DrawOperation : OperationBase
     public VertexAttribDescriptors VertexAttribsDep { get; }
     public Matrix4 ModelMatrix { get; }
 
+    public Texture? TextureDep { get; }
+
     public DrawOperation(
         Shader shaderDep,
         VertexBuffers vertexBuffersDep,
         VertexAttribDescriptors vertexAttribsDep,
-        Matrix4 modelMatrix)
+        Matrix4 modelMatrix,
+        Texture? textureDep = null)
     {
         ShaderDep = shaderDep;
         VertexBuffersDep = vertexBuffersDep;
         VertexAttribsDep = vertexAttribsDep;
         ModelMatrix = modelMatrix;
+
+        TextureDep = textureDep;
     }
 
     public override ulong ComputeOrderKey()
@@ -29,7 +34,8 @@ public class DrawOperation : OperationBase
         return
             ((ulong)ShaderDep.ResourceId << Renderer.SHADER_PROGRAM_OFFSET)
             | ((ulong)VertexAttribsDep.ResourceId << Renderer.VERTEX_ATTRIBUTE_FORMAT_OFFSET)
-            | ((ulong)VertexBuffersDep.ResourceId << Renderer.VERTEX_BUFFER_OFFSET);
+            | ((ulong)VertexBuffersDep.ResourceId << Renderer.VERTEX_BUFFER_OFFSET)
+            | ((TextureDep?.ResourceId ?? 0UL) << Renderer.TEXTURE_ATTACHMENT_OFFSET);
     }
 
     internal void Draw()

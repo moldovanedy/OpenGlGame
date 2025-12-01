@@ -1,21 +1,54 @@
+using System;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace OpenGlGame.Rendering.Resources;
 
-public class Texture : ResourceBase
+public class Texture : ResourceBase, IDisposable
 {
-    public record TextureFormat(
-        PixelInternalFormat InternalFormat,
-        PixelFormat Format,
-        int Width,
-        int Height,
-        PixelType IndividualPixelType,
-        TextureWrapMode XWrapMode,
-        TextureWrapMode YWrapMode,
-        TextureMinFilter MinFilter,
-        TextureMagFilter MagFilter
-    );
+    public class TextureFormat
+    {
+        public PixelInternalFormat InternalFormat { get; set; } = PixelInternalFormat.Rgba;
+        public PixelFormat Format { get; set; } = PixelFormat.Rgba;
+        public PixelType IndividualPixelType { get; set; } = PixelType.UnsignedByte;
+
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public TextureWrapMode XWrapMode { get; set; } = TextureWrapMode.Clamp;
+        public TextureWrapMode YWrapMode { get; set; } = TextureWrapMode.Clamp;
+
+        public TextureMinFilter MinFilter { get; set; } = TextureMinFilter.LinearMipmapLinear;
+        public TextureMagFilter MagFilter { get; set; } = TextureMagFilter.Linear;
+
+        public Color4? WrapBorderColor { get; set; }
+
+        public TextureFormat()
+        {
+        }
+
+        public TextureFormat(
+            PixelInternalFormat internalFormat,
+            PixelFormat format,
+            int width,
+            int height,
+            TextureWrapMode xWrapMode,
+            TextureWrapMode yWrapMode,
+            TextureMinFilter minFilter,
+            TextureMagFilter magFilter,
+            Color4? wrapBorderColor = null)
+        {
+            InternalFormat = internalFormat;
+            Format = format;
+            Width = width;
+            Height = height;
+            XWrapMode = xWrapMode;
+            YWrapMode = yWrapMode;
+            MinFilter = minFilter;
+            MagFilter = magFilter;
+            WrapBorderColor = wrapBorderColor;
+        }
+    }
 
 
     internal int GlTextureId { get; private set; }
@@ -23,8 +56,7 @@ public class Texture : ResourceBase
     public Texture(
         uint resourceId,
         byte[] rawData,
-        TextureFormat texFormat,
-        Color4? wrapBorderColor = null) : base(resourceId)
+        TextureFormat texFormat) : base(resourceId)
     {
         GL.GenTextures(1, out int texId);
         GlTextureId = texId;
@@ -51,13 +83,13 @@ public class Texture : ResourceBase
         if (texFormat.XWrapMode == TextureWrapMode.ClampToBorder ||
             texFormat.YWrapMode == TextureWrapMode.ClampToBorder)
         {
-            wrapBorderColor ??= Color4.Black;
+            texFormat.WrapBorderColor ??= Color4.Black;
             float[] colorComponents =
             [
-                wrapBorderColor.Value.R,
-                wrapBorderColor.Value.G,
-                wrapBorderColor.Value.B,
-                wrapBorderColor.Value.A
+                texFormat.WrapBorderColor.Value.R,
+                texFormat.WrapBorderColor.Value.G,
+                texFormat.WrapBorderColor.Value.B,
+                texFormat.WrapBorderColor.Value.A
             ];
 
             GL.TexParameter(
@@ -77,5 +109,11 @@ public class Texture : ResourceBase
             texFormat.IndividualPixelType,
             rawData);
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+    }
+
+    public void Dispose()
+    {
+        GL.DeleteTexture(GlTextureId);
+        GC.SuppressFinalize(this);
     }
 }

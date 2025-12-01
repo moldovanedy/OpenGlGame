@@ -26,6 +26,8 @@ public class MeshRenderer : IGameObjectComponent
 
     public VertexBuffers? VertBuffers { get; set; }
 
+    public Texture[]? Textures { get; set; }
+
 
     private Transform3D? _ownerTransform;
 
@@ -46,7 +48,8 @@ public class MeshRenderer : IGameObjectComponent
                     Shader,
                     VertBuffers,
                     VertAttributeDescriptors,
-                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity));
+                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
+                    Textures?[0]));
         }
     }
 }
