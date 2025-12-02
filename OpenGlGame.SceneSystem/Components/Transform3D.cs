@@ -11,7 +11,8 @@ public class Transform3D : IGameObjectComponent
 
     public Vector3 Position { get; set; }
 
-    public Vector3? Rotation { get; set; }
+    // public Vector3? Rotation { get; set; }
+    public Quaternion? Rotation { get; set; }
 
     public Vector3? Scale { get; set; }
 
@@ -47,9 +48,7 @@ public class Transform3D : IGameObjectComponent
             if (Scale == null)
             {
                 matrix =
-                    Matrix4.CreateRotationY(Rotation.Value.Y)
-                    * Matrix4.CreateRotationX(Rotation.Value.X)
-                    * Matrix4.CreateRotationZ(Rotation.Value.Z)
+                    Matrix4.CreateFromQuaternion(Rotation.Value)
                     * Matrix4.CreateTranslation(Position)
                     ;
             }
@@ -57,9 +56,7 @@ public class Transform3D : IGameObjectComponent
             {
                 matrix =
                     Matrix4.CreateScale(Scale.Value)
-                    * Matrix4.CreateRotationY(Rotation.Value.Y)
-                    * Matrix4.CreateRotationX(Rotation.Value.X)
-                    * Matrix4.CreateRotationZ(Rotation.Value.Z)
+                    * Matrix4.CreateFromQuaternion(Rotation.Value)
                     * Matrix4.CreateTranslation(Position)
                     ;
             }

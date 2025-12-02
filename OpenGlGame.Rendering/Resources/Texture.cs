@@ -53,7 +53,7 @@ public class Texture : ResourceBase, IDisposable
 
     internal int GlTextureId { get; private set; }
 
-    public Texture(
+    internal Texture(
         uint resourceId,
         byte[] rawData,
         TextureFormat texFormat) : base(resourceId)
@@ -79,6 +79,10 @@ public class Texture : ResourceBase, IDisposable
             TextureTarget.Texture2D,
             TextureParameterName.TextureMagFilter,
             [(int)texFormat.MagFilter]);
+
+        //enable anisotropic filtering
+        float anisotropyLevel = GL.GetFloat(GetPName.MaxTextureMaxAnisotropy);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxAnisotropy, anisotropyLevel);
 
         if (texFormat.XWrapMode == TextureWrapMode.ClampToBorder ||
             texFormat.YWrapMode == TextureWrapMode.ClampToBorder)

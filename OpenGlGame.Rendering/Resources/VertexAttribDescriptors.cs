@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenGlGame.Rendering.Resources;
 
-public class VertexAttribDescriptors : ResourceBase
+public sealed class VertexAttribDescriptors : ResourceBase
 {
     public class AttribDescriptor
     {
@@ -54,12 +54,12 @@ public class VertexAttribDescriptors : ResourceBase
 
     public List<AttribDescriptor> Attributes { get; }
 
-    public VertexAttribDescriptors(uint resourceId, IList<AttribDescriptor> attributes) : base(resourceId)
+    internal VertexAttribDescriptors(uint resourceId, IList<AttribDescriptor> attributes) : base(resourceId)
     {
         Attributes = new List<AttribDescriptor>(attributes);
     }
 
-    public VertexAttribDescriptors(uint resourceId, params AttribDescriptor[] attributes) : base(resourceId)
+    internal VertexAttribDescriptors(uint resourceId, params AttribDescriptor[] attributes) : base(resourceId)
     {
         Attributes = new List<AttribDescriptor>(attributes);
     }

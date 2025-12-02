@@ -1,3 +1,4 @@
+using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Operations;
 using OpenGlGame.Rendering.Resources;
 using OpenTK.Mathematics;
@@ -20,14 +21,9 @@ public class MeshRenderer : IGameObjectComponent
 
     private GameObject? _owner;
 
-    public VertexAttribDescriptors? VertAttributeDescriptors { get; set; }
-
-    public Shader? Shader { get; set; }
+    public MeshMaterial? Material { get; set; }
 
     public VertexBuffers? VertBuffers { get; set; }
-
-    public Texture[]? Textures { get; set; }
-
 
     private Transform3D? _ownerTransform;
 
@@ -41,15 +37,13 @@ public class MeshRenderer : IGameObjectComponent
 
     public void Update(double deltaTime)
     {
-        if (Shader != null && VertBuffers != null && VertAttributeDescriptors != null)
+        if (VertBuffers != null && Material != null)
         {
             _owner?.SystemRenderer?.AddCommand(
                 new DrawOperation(
-                    Shader,
                     VertBuffers,
-                    VertAttributeDescriptors,
-                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
-                    Textures?[0]));
+                    Material,
+                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity));
         }
     }
 }

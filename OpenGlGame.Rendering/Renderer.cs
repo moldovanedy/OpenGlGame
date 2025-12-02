@@ -16,28 +16,36 @@ public class Renderer
     internal const int RENDER_TARGET_OFFSET = 56;
     internal const ulong RENDER_TARGET_MASK = 0x0fUL << 56;
 
-    internal const int SHADER_PROGRAM_OFFSET = 44;
-    internal const ulong SHADER_PROGRAM_MASK = 0x0fffUL << 44;
+    // internal const int SHADER_PROGRAM_OFFSET = 44;
+    // internal const ulong SHADER_PROGRAM_MASK = 0x0fffUL << 44;
+    //
+    // internal const int BLENDING_OFFSET = 40;
+    // internal const ulong BLENDING_MASK = 0x0fUL << 40;
+    //
+    // internal const int TEXTURE_ATTACHMENT_OFFSET = 32;
+    // internal const ulong TEXTURE_ATTACHMENT_MASK = 0xffUL << 32;
+    //
+    // internal const int VERTEX_ATTRIBUTE_FORMAT_OFFSET = 24;
+    // internal const ulong VERTEX_ATTRIBUTE_FORMAT_MASK = 0xffUL << 24;
+    //
+    // internal const int UNIFORM_BUFFER_OFFSET = 12;
+    // internal const ulong UNIFORM_BUFFER_MASK = 0x0fffUL << 12;
 
-    internal const int BLENDING_OFFSET = 40;
-    internal const ulong BLENDING_MASK = 0x0fUL << 40;
-
-    internal const int TEXTURE_ATTACHMENT_OFFSET = 32;
-    internal const ulong TEXTURE_ATTACHMENT_MASK = 0xffUL << 32;
-
-    internal const int VERTEX_ATTRIBUTE_FORMAT_OFFSET = 24;
-    internal const ulong VERTEX_ATTRIBUTE_FORMAT_MASK = 0xffUL << 24;
-
-    internal const int UNIFORM_BUFFER_OFFSET = 12;
-    internal const ulong UNIFORM_BUFFER_MASK = 0x0fffUL << 12;
+    internal const int MATERIAL_OFFSET = 12;
+    internal const ulong MATERIAL_MASK = 0xff_ff_ff_ff_ffUL << 12;
 
     internal const int VERTEX_BUFFER_OFFSET = 0;
     internal const ulong VERTEX_BUFFER_MASK = 0x0fffUL;
 
+    internal const ulong DEFAULT_MATERIAL_STATE_MASK =
+        MeshMaterial.BLENDING_MASK
+        | MeshMaterial.SHADER_PROGRAM_MASK
+        | MeshMaterial.VERTEX_ATTRIBUTE_FORMAT_MASK;
+
     private readonly List<OperationBase> _commands = [];
 
     //set what's modified initially
-    private ulong _lastFrameModifiedStates = SHADER_PROGRAM_MASK | VERTEX_BUFFER_MASK;
+    private ulong _lastFrameModifiedStates = DEFAULT_MATERIAL_STATE_MASK | VERTEX_BUFFER_MASK;
 
     private Matrix4 _viewProjectionMatrix = Matrix4.Identity;
 
@@ -91,6 +99,7 @@ public class Renderer
                     lastOrderKey = drawOp.OrderKey;
                 }
 
+                drawOp.MeshMaterialDep.UpdateProperties();
                 drawOp.Draw();
             }
         }
@@ -108,25 +117,39 @@ public class Renderer
 
     private void ChangeState(ulong thisOrderKey, ulong lastOrderKey, DrawOperation drawOp)
     {
-        if ((thisOrderKey & SHADER_PROGRAM_MASK) != (lastOrderKey & SHADER_PROGRAM_MASK))
+        bool hasMultipleTextures = drawOp.MeshMaterialDep.Textures?.Length > 1;
+
+        if ((thisOrderKey & MATERIAL_MASK) != (lastOrderKey & MATERIAL_MASK) || hasMultipleTextures)
         {
-            GL.UseProgram(drawOp.ShaderDep.GlId);
-
-            Matrix4 viewProjMatrix = _viewProjectionMatrix;
-            drawOp.ShaderDep.SetUniformMat4("viewProjection", ref viewProjMatrix);
-
-            _lastFrameModifiedStates |= SHADER_PROGRAM_MASK;
-        }
-
-        if ((thisOrderKey & TEXTURE_ATTACHMENT_MASK) != (lastOrderKey & TEXTURE_ATTACHMENT_MASK))
-        {
-            if (drawOp.TextureDep == null)
+            if ((thisOrderKey & MeshMaterial.SHADER_PROGRAM_MASK) != (lastOrderKey & MeshMaterial.SHADER_PROGRAM_MASK))
             {
-                throw new Exception("Texture was changed, but the draw operation doesn't specify a texture dependency");
+                GL.UseProgram(drawOp.MeshMaterialDep.UsedShader.GlId);
+
+                Matrix4 viewProjMatrix = _viewProjectionMatrix;
+                drawOp.MeshMaterialDep.UsedShader.SetUniformMat4("viewProjection", ref viewProjMatrix);
             }
 
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, drawOp.TextureDep.GlTextureId);
+            //if the texture changed, but it changed so it actually has at least a texture OR it has multiple textures,
+            // configure OpenGL for textures
+            if (((thisOrderKey & MeshMaterial.TEXTURE_ATTACHMENTS_HASH_MASK) !=
+                 (lastOrderKey & MeshMaterial.TEXTURE_ATTACHMENTS_HASH_MASK)
+                 && (thisOrderKey & MeshMaterial.TEXTURE_ATTACHMENTS_HASH_MASK) != 0)
+                || hasMultipleTextures)
+            {
+                if (drawOp.MeshMaterialDep.Textures == null)
+                {
+                    throw new Exception(
+                        "Texture was changed, but the draw operation doesn't specify a texture dependency");
+                }
+
+                for (int i = 0; i < drawOp.MeshMaterialDep.Textures.Length; i++)
+                {
+                    GL.ActiveTexture(TextureUnit.Texture0 + i);
+                    GL.BindTexture(TextureTarget.Texture2D, drawOp.MeshMaterialDep.Textures[i].GlTextureId);
+                }
+            }
+
+            _lastFrameModifiedStates |= MATERIAL_MASK;
         }
 
         if ((thisOrderKey & VERTEX_BUFFER_MASK) != (lastOrderKey & VERTEX_BUFFER_MASK))

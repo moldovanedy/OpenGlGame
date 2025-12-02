@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem.Components;
@@ -10,12 +11,18 @@ public class GameObject
 
     private readonly Dictionary<string, IGameObjectComponent> _components = [];
 
+    public event Action? EnterSceneEvent;
+    public event Action? ExitSceneEvent;
+    public event Action<double>? UpdateEvent;
+
     public void EnterScene()
     {
         foreach (IGameObjectComponent component in _components.Values)
         {
             component.EnterScene();
         }
+
+        EnterSceneEvent?.Invoke();
     }
 
     public void ExitScene()
@@ -24,6 +31,8 @@ public class GameObject
         {
             component.ExitScene();
         }
+
+        ExitSceneEvent?.Invoke();
     }
 
     public void Update(double deltaTime)
@@ -32,6 +41,8 @@ public class GameObject
         {
             component.Update(deltaTime);
         }
+
+        UpdateEvent?.Invoke(deltaTime);
     }
 
     public void AddComponent(IGameObjectComponent component)
@@ -43,6 +54,11 @@ public class GameObject
     public IGameObjectComponent? GetComponent(string name)
     {
         return _components.GetValueOrDefault(name);
+    }
+
+    public T? GetComponent<T>() where T : IGameObjectComponent
+    {
+        return (T?)_components.GetValueOrDefault(nameof(T));
     }
 
     public bool RemoveComponent(string name)

@@ -2,45 +2,46 @@ using System;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Components;
+using OpenTK.Mathematics;
 
 namespace OpenGlGame.SceneSystem.Prefabs;
 
 public class Floor01 : GameObject
 {
-    public Floor01()
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private MeshMaterial _material;
+
+    public Floor01(Transform3D transform)
     {
-        AddComponent(new Transform3D());
-
-        VertexAttribDescriptors vertAttributes = CommonVertexAttribDescriptors.AlbedoTextureMesh;
-        Shader? shader = ResourceManager.Instance.GetOrCreateShader("/assets/shaders/albedo_lit");
-        if (shader == null)
-        {
-            throw new NullReferenceException("Shader could not compile");
-        }
-
-        VertexBuffers? buffers =
-            ResourceManager.Instance.GetOrCreateVertexBuffers(
-                "/assets/models/floor_01/floor_01.glb.vert01",
-                vertAttributes);
-        if (buffers == null)
-        {
-            throw new NullReferenceException("Vertex buffers were not found");
-        }
-
         Texture? albedo = ResourceManager.Instance.GetOrCreateTexture(
-            "/assets/models/floor_01/tex_albedo01.png");
+            "/assets/models/floor_01/tex_albedo01.png",
+            new Texture.TextureFormat());
         if (albedo == null)
         {
             throw new NullReferenceException("Wall texture was not found");
+        }
+
+        _material = CommonMaterials.CreateAlbedoTiledMaterial(albedo);
+        _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
+        _material.SetProperty("offset", new Vector2(0f, 0f));
+
+        AddComponent(transform);
+
+        VertexBuffers? buffers =
+            ResourceManager.Instance.GetVertexBuffers("/assets/models/floor_01/floor_01.glb.vert01")
+            ?? ResourceManager.Instance.CreateVertexBuffersFromFile(
+                "/assets/models/floor_01/floor_01.glb.vert01",
+                CommonVertexAttribDescriptors.AlbedoTextureMesh);
+        if (buffers == null)
+        {
+            throw new NullReferenceException("Vertex buffers were not found");
         }
 
         AddComponent(
             new MeshRenderer
             {
                 VertBuffers = buffers,
-                Shader = shader,
-                VertAttributeDescriptors = vertAttributes,
-                Textures = [albedo]
+                Material = _material
             });
     }
 }

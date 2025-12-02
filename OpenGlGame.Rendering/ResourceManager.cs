@@ -20,8 +20,8 @@ public class ResourceManager : IDisposable
 
     private static ResourceManager? _instance;
 
-    private const int MAX_EXPENSIVE_RESOURCE_COUNT = 255;
-    private const int MAX_SIMPLE_RESOURCE_COUNT = 4095;
+    private const int MAX_SCARCE_RESOURCE_COUNT = 255;
+    private const int MAX_COMMON_RESOURCE_COUNT = 4095;
 
     private readonly Dictionary<string, WeakReference> _shaders = new();
     private readonly Dictionary<string, WeakReference> _textures = new();
@@ -58,6 +58,9 @@ public class ResourceManager : IDisposable
             ((IDisposable?)weakReference.Target)?.Dispose();
         }
 
+        //WARNING: vertex attrib descriptors don't implement IDisposable, so don't dispose of them as it will
+        // throw exceptions
+
         GC.SuppressFinalize(this);
     }
 
@@ -88,44 +91,9 @@ public class ResourceManager : IDisposable
                 : ReadTextureFromFile(id, ref creationTexFormat);
     }
 
-    public VertexBuffers? GetOrCreateVertexBuffers(
-        string id,
-        VertexAttribDescriptors? creationVertexAttribDescriptors = null)
+    public VertexBuffers? GetVertexBuffers(string id)
     {
         if (_vertexBuffers.TryGetValue(id, out WeakReference? value))
-        {
-            return value.Target as VertexBuffers;
-        }
-
-        //this means the meshes are generated at runtime, so there is no use in trying to load them from the FS
-        if (id.Contains("/runtime_gen/"))
-        {
-            return null;
-        }
-
-        if (creationVertexAttribDescriptors == null)
-        {
-            throw new Exception("Vertex buffers were not found, but no creation parameters were provided.");
-        }
-
-        try
-        {
-            //automatically handles dictionary addition
-            ModelLoaderUtility.LoadModelFromFile(
-                id.Substring(0, id.LastIndexOf('.')),
-                creationVertexAttribDescriptors);
-        }
-        catch (Exception ex)
-        {
-#if DEBUG
-            Console.WriteLine($"[DEBUG] Exception when trying to load vertex buffers with ID {id}: {ex}");
-#endif
-
-            return null;
-        }
-
-        //try again
-        if (_vertexBuffers.TryGetValue(id, out value))
         {
             return value.Target as VertexBuffers;
         }
@@ -160,7 +128,7 @@ public class ResourceManager : IDisposable
 
         //if there are no free slots in between, but the shader storage hasn't reached full capacity, we specify that
         // there still is space
-        if (_freeShaderResIds.Count == 0 && _shaders.Count < MAX_SIMPLE_RESOURCE_COUNT)
+        if (_freeShaderResIds.Count == 0 && _shaders.Count < MAX_COMMON_RESOURCE_COUNT)
         {
             _freeShaderResIds.Push((uint)_shaders.Count + 1);
         }
@@ -188,7 +156,7 @@ public class ResourceManager : IDisposable
         Texture texture = new(existingValue?.ResourceId ?? _freeTextureResIds.Pop(), rawData, texFormat);
         _textures[id] = new WeakReference(texture);
 
-        if (_freeTextureResIds.Count == 0 && _textures.Count < MAX_EXPENSIVE_RESOURCE_COUNT)
+        if (_freeTextureResIds.Count == 0 && _textures.Count < MAX_SCARCE_RESOURCE_COUNT)
         {
             _freeTextureResIds.Push((uint)_textures.Count + 1);
         }
@@ -227,12 +195,41 @@ public class ResourceManager : IDisposable
             indicesCount);
         _vertexBuffers[id] = new WeakReference(vertexBuffers);
 
-        if (_freeVertBufResIds.Count == 0 && _vertexBuffers.Count < MAX_SIMPLE_RESOURCE_COUNT)
+        if (_freeVertBufResIds.Count == 0 && _vertexBuffers.Count < MAX_COMMON_RESOURCE_COUNT)
         {
             _freeVertBufResIds.Push((uint)_vertexBuffers.Count + 1);
         }
 
         return vertexBuffers;
+    }
+
+    public VertexBuffers? CreateVertexBuffersFromFile(
+        string id,
+        VertexAttribDescriptors creationVertexAttribDescriptors)
+    {
+        try
+        {
+            //automatically handles dictionary addition
+            ModelLoaderUtility.LoadModelFromFile(
+                id.Substring(0, id.LastIndexOf('.')),
+                creationVertexAttribDescriptors);
+        }
+        catch (Exception ex)
+        {
+#if DEBUG
+            Console.WriteLine($"[DEBUG] Exception when trying to load vertex buffers with ID {id}: {ex}");
+#endif
+
+            return null;
+        }
+
+        //try again
+        if (_vertexBuffers.TryGetValue(id, out WeakReference? value))
+        {
+            return value.Target as VertexBuffers;
+        }
+
+        return null;
     }
 
     public VertexAttribDescriptors CreateVertexAttribDescriptors(
@@ -257,7 +254,7 @@ public class ResourceManager : IDisposable
         _vertexAttribDescriptors[id] = new WeakReference(vertexBuffers);
 
         if (_freeVertAttribDescriptorsResIds.Count == 0 &&
-            _vertexAttribDescriptors.Count < MAX_EXPENSIVE_RESOURCE_COUNT)
+            _vertexAttribDescriptors.Count < MAX_SCARCE_RESOURCE_COUNT)
         {
             _freeVertAttribDescriptorsResIds.Push((uint)_vertexAttribDescriptors.Count + 1);
         }

@@ -7,39 +7,31 @@ namespace OpenGlGame.SceneSystem.Prefabs;
 
 public class Cube01 : GameObject
 {
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private MeshMaterial _material;
+
     public Cube01()
     {
+        _material = CommonMaterials.CreateAlbedoMaterial();
+
         AddComponent(new Transform3D());
 
-        VertexAttribDescriptors vertAttributes = CommonVertexAttribDescriptors.AlbedoTextureMesh;
-        Shader? shader = ResourceManager.Instance.GetOrCreateShader("/assets/shaders/albedo_lit");
-        if (shader == null)
-        {
-            throw new NullReferenceException("Shader could not compile");
-        }
-
         VertexBuffers? buffers =
-            ResourceManager.Instance.GetOrCreateVertexBuffers(
+            ResourceManager.Instance.GetVertexBuffers(
+                "/assets/models/cube_01/cube_01.glb.vert01")
+            ?? ResourceManager.Instance.CreateVertexBuffersFromFile(
                 "/assets/models/cube_01/cube_01.glb.vert01",
-                vertAttributes);
+                CommonVertexAttribDescriptors.AlbedoTextureMesh);
         if (buffers == null)
         {
             throw new NullReferenceException("Vertex buffers were not found");
-        }
-
-        Texture? defaultTexture = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
-        if (defaultTexture == null)
-        {
-            throw new NullReferenceException("Default texture was not found");
         }
 
         AddComponent(
             new MeshRenderer
             {
                 VertBuffers = buffers,
-                Shader = shader,
-                VertAttributeDescriptors = vertAttributes,
-                Textures = [defaultTexture]
+                Material = _material
             });
     }
 }

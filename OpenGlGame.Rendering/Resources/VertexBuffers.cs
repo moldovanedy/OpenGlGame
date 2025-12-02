@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenGlGame.Rendering.Resources;
 
-public class VertexBuffers : ResourceBase, IDisposable
+public sealed class VertexBuffers : ResourceBase, IDisposable
 {
     public int VertexCount { get; private set; }
     public int IndexCount { get; private set; }
@@ -88,7 +88,5 @@ public class VertexBuffers : ResourceBase, IDisposable
             GL.DeleteBuffers(1, ref _ebo);
             _ebo = -1;
         }
-
-        GC.SuppressFinalize(this);
     }
 }

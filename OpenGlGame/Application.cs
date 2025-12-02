@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
+using OpenGlGame.Chunks.Chunk01;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
-using OpenGlGame.SceneSystem.Components;
-using OpenGlGame.SceneSystem.Prefabs;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -55,39 +54,9 @@ public class Application : IDisposable
 
         GenerateRuntimeAssets();
 
-        ColoredTriangle tri1 = new();
-        if (tri1.GetComponent(nameof(Transform3D)) is Transform3D triangleTransform)
-        {
-            triangleTransform.Position = new Vector3(0.0f, -1.5f, 0.0f);
-            triangleTransform.Rotation = new Vector3(float.DegreesToRadians(90.0f), 0.0f, 0.0f);
-            triangleTransform.Scale = new Vector3(30.0f, 30.0f, 1.0f);
-        }
-
-        Cube01 cube = new();
-        if (cube.GetComponent(nameof(Transform3D)) is Transform3D cubeTransform)
-        {
-            cubeTransform.Position = new Vector3(5.0f, 0.5f, 3.0f);
-        }
-
-        Floor01 floor = new();
-        if (floor.GetComponent(nameof(Transform3D)) is Transform3D floorTransform)
-        {
-            floorTransform.Position = new Vector3(-2.0f, 0.5f, 3.0f);
-            floorTransform.Rotation = new Vector3(
-                float.DegreesToRadians(0.0f),
-                float.DegreesToRadians(-90.0f),
-                float.DegreesToRadians(-90.0f));
-            floorTransform.Scale = new Vector3(5.0f, 1.0f, 3.0f);
-        }
-
-        SceneManager.WorldChunk chunk1 = new(
-            [tri1, cube, floor],
-            Vector3.Zero,
-            new Vector3(500, 500, 500));
-
         List<SceneManager.WorldChunk> chunks =
         [
-            chunk1,
+            new LevelChunk01(),
             new([], Vector3.Zero, Vector3.One),
             new([], Vector3.Zero, Vector3.One),
             new([], Vector3.Zero, Vector3.One),
@@ -117,6 +86,11 @@ public class Application : IDisposable
             _isFullscreenToggleRequested = false;
         }
 
+        if (e.Time > 0.2f)
+        {
+            return;
+        }
+
         _sceneManager.Update(
             new SceneManager.FrameParameters(
                 window.FramebufferSize.X,
@@ -129,9 +103,12 @@ public class Application : IDisposable
     #region Input
 
     private Camera.CameraMovement _playerDirection;
+    private Camera.CameraMovement _pendingContradictoryMovements;
 
     internal void OnKeyUp(KeyboardKeyEventArgs e)
     {
+        _playerDirection |= _pendingContradictoryMovements;
+
         switch (e.Key)
         {
             default:
@@ -143,24 +120,28 @@ public class Application : IDisposable
             case Keys.Up:
             {
                 _playerDirection &= ~Camera.CameraMovement.Forward;
+                _pendingContradictoryMovements &= ~Camera.CameraMovement.Forward;
                 break;
             }
             case Keys.S:
             case Keys.Down:
             {
                 _playerDirection &= ~Camera.CameraMovement.Backward;
+                _pendingContradictoryMovements &= ~Camera.CameraMovement.Backward;
                 break;
             }
             case Keys.A:
             case Keys.Left:
             {
                 _playerDirection &= ~Camera.CameraMovement.Left;
+                _pendingContradictoryMovements &= ~Camera.CameraMovement.Left;
                 break;
             }
             case Keys.D:
             case Keys.Right:
             {
                 _playerDirection &= ~Camera.CameraMovement.Right;
+                _pendingContradictoryMovements &= ~Camera.CameraMovement.Right;
                 break;
             }
         }
@@ -179,6 +160,7 @@ public class Application : IDisposable
             {
                 if ((_playerDirection & Camera.CameraMovement.Backward) != Camera.CameraMovement.None)
                 {
+                    _pendingContradictoryMovements |= Camera.CameraMovement.Forward;
                     break;
                 }
 
@@ -190,6 +172,7 @@ public class Application : IDisposable
             {
                 if ((_playerDirection & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
                 {
+                    _pendingContradictoryMovements |= Camera.CameraMovement.Backward;
                     break;
                 }
 
@@ -201,6 +184,7 @@ public class Application : IDisposable
             {
                 if ((_playerDirection & Camera.CameraMovement.Right) != Camera.CameraMovement.None)
                 {
+                    _pendingContradictoryMovements |= Camera.CameraMovement.Left;
                     break;
                 }
 
@@ -212,6 +196,7 @@ public class Application : IDisposable
             {
                 if ((_playerDirection & Camera.CameraMovement.Left) != Camera.CameraMovement.None)
                 {
+                    _pendingContradictoryMovements |= Camera.CameraMovement.Right;
                     break;
                 }
 

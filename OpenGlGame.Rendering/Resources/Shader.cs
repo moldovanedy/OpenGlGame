@@ -4,7 +4,7 @@ using OpenTK.Mathematics;
 
 namespace OpenGlGame.Rendering.Resources;
 
-public class Shader : ResourceBase, IDisposable
+public sealed class Shader : ResourceBase, IDisposable
 {
     internal Shader(uint resourceId, string vertexSource, string fragmentSource) : base(resourceId)
     {
@@ -53,7 +53,16 @@ public class Shader : ResourceBase, IDisposable
     {
         GL.DeleteProgram(GlId);
         GlId = -1;
-        GC.SuppressFinalize(this);
+    }
+
+    public void SetUniformScalar(string name, float value)
+    {
+        GL.Uniform1(GL.GetUniformLocation(GlId, name), value);
+    }
+
+    public void SetUniformScalarI(string name, int value)
+    {
+        GL.Uniform1(GL.GetUniformLocation(GlId, name), value);
     }
 
     public void SetUniformVec2(string name, ref Vector2 vector)

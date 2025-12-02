@@ -1,4 +1,3 @@
-using System;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Components;
@@ -10,8 +9,12 @@ public class ColoredTriangle : GameObject
 {
     private const string VERT_BUFFERS_PATH = "/runtime_gen/triangle";
 
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private MeshMaterial _material;
+
     public ColoredTriangle()
     {
+        _material = CommonMaterials.CreateVertColorsMaterial();
         AddComponent(new Transform3D());
 
         float[] triangleVertices =
@@ -22,19 +25,12 @@ public class ColoredTriangle : GameObject
             0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f // top 
         ];
 
-        VertexAttribDescriptors vertexAttributeDescriptors = CommonVertexAttribDescriptors.VertexColorsMesh;
-        Shader? shader = ResourceManager.Instance.GetOrCreateShader("/assets/shaders/vert_colors_lit");
-        if (shader == null)
-        {
-            throw new NullReferenceException("Shader could not compile");
-        }
-
         VertexBuffers triangleVertexBuffers =
-            ResourceManager.Instance.GetOrCreateVertexBuffers(VERT_BUFFERS_PATH)
+            ResourceManager.Instance.GetVertexBuffers(VERT_BUFFERS_PATH)
             ?? ResourceManager.Instance.CreateVertexBuffers(
                 VERT_BUFFERS_PATH,
                 PrimitiveType.Triangles,
-                vertexAttributeDescriptors,
+                CommonVertexAttribDescriptors.VertexColorsMesh,
                 triangleVertices,
                 3
             );
@@ -43,8 +39,7 @@ public class ColoredTriangle : GameObject
             new MeshRenderer
             {
                 VertBuffers = triangleVertexBuffers,
-                Shader = shader,
-                VertAttributeDescriptors = vertexAttributeDescriptors
+                Material = _material
             });
     }
 }
