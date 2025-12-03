@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenTK.Mathematics;
 using OpenGlGame.Rendering;
+using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 
 namespace OpenGlGame.SceneSystem;
@@ -22,22 +23,11 @@ public class SceneManager
 
     public record FrameParameters(int FramebufferWidth, int FramebufferHeight, double DeltaTime);
 
-
-    public Camera PlayerCamera { get; private set; }
-    public Player PlayerObject { get; private set; }
-    public PhysicsSystem PhysSystem { get; private set; } = new();
-
     private List<WorldChunk> _levelChunks = [];
     private readonly Renderer _systemRenderer = new();
 
     private readonly List<WorldChunk> _currentChunks = [];
     private int _currentChunkIndex;
-
-    public SceneManager()
-    {
-        PlayerObject = new Player();
-        PlayerCamera = new Camera(PlayerObject);
-    }
 
     public void SetLevel(List<WorldChunk> allChunks)
     {
@@ -63,11 +53,10 @@ public class SceneManager
                 throw new Exception("Not enough level chunks");
         }
 
-        PlayerCamera.Update(frameParams.DeltaTime);
-        PlayerObject.Update(frameParams.DeltaTime);
+        Player.Instance.Update(frameParams.DeltaTime);
 
-        CheckChunkLoading(PlayerCamera.Position);
-        _systemRenderer.UpdateViewProjectionMatrix(PlayerCamera.GetViewProjectionMatrix());
+        CheckChunkLoading(Player.Instance.Camera.Position);
+        _systemRenderer.UpdateViewProjectionMatrix(Player.Instance.Camera.GetViewProjectionMatrix());
 
         foreach (WorldChunk chunk in _currentChunks)
         {
@@ -82,7 +71,8 @@ public class SceneManager
 
     public void PhysicsUpdate()
     {
-        PhysSystem.PhysicsUpdate(PlayerObject, _currentChunks);
+        PhysicsSystem.Instance.PhysicsUpdate();
+        Player.Instance.PhysicsUpdate();
     }
 
     private void LoadChunk(WorldChunk chunk)
@@ -93,6 +83,8 @@ public class SceneManager
             gameObject.SystemRenderer = _systemRenderer;
             gameObject.EnterScene();
         }
+
+        PhysicsSystem.Instance.RecreatePhysicsComponentsLists(_currentChunks);
     }
 
     private void UnloadChunk(WorldChunk chunk)
@@ -103,6 +95,8 @@ public class SceneManager
             gameObject.ExitScene();
             gameObject.SystemRenderer = null;
         }
+
+        PhysicsSystem.Instance.RecreatePhysicsComponentsLists(_currentChunks);
     }
 
     private void CheckChunkLoading(Vector3 cameraPos)

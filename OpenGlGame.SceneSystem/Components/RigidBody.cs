@@ -24,10 +24,7 @@ public class RigidBody : IPhysicsObjectComponent
     public Aabb BoundingBox { get; set; }
 
 
-    // internal Vector3 InternalCurrentAcceleration { get; set; }
     internal Vector3 InternalAccumulatedForces { get; set; }
-
-    // internal Vector3 InternalVelocity { get; set; }
     internal Aabb InternalAaBoundingBox { get; set; }
 
     internal Vector3 InternalPosition { get; set; }
@@ -62,5 +59,10 @@ public class RigidBody : IPhysicsObjectComponent
     public void AddForce(Vector3 force)
     {
         InternalAccumulatedForces += force;
+    }
+
+    public void SetDirectVelocity(Vector3 velocity)
+    {
+        InternalPosition = InternalPreviousPosition + (float)PhysicsSystem.PHYSICS_TICK_SECONDS * velocity;
     }
 }

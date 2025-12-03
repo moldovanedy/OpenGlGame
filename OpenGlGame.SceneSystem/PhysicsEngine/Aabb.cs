@@ -107,4 +107,59 @@ public readonly struct Aabb
 
         return true;
     }
+
+    public static Vector3 GetDistanceBetween(Aabb aabb1, Aabb aabb2)
+    {
+        Vector3 result = Vector3.Zero;
+
+        // X axis
+        if (aabb1.End.X < aabb2.Start.X)
+        {
+            // 2 is to the right of 1
+            result.X = aabb2.Start.X - aabb1.End.X;
+        }
+        else if (aabb2.End.X < aabb1.Start.X)
+        {
+            // 2 is to the left of 1
+            result.X = aabb1.Start.X - aabb2.End.X;
+            // result.X = aabb2.End.X - aabb1.Start.X;
+        }
+        else
+        {
+            // Overlapping on X
+            result.X = 0;
+        }
+
+        // Y axis
+        if (aabb1.End.Y < aabb2.Start.Y)
+        {
+            result.Y = aabb2.Start.Y - aabb1.End.Y;
+        }
+        else if (aabb2.End.Y < aabb1.Start.Y)
+        {
+            result.Y = aabb1.Start.Y - aabb2.End.Y;
+            // result.Y = aabb2.End.Y - aabb1.Start.Y;
+        }
+        else
+        {
+            result.Y = 0;
+        }
+
+        // Z axis
+        if (aabb1.End.Z < aabb2.Start.Z)
+        {
+            result.Z = aabb2.Start.Z - aabb1.End.Z;
+        }
+        else if (aabb2.End.Z < aabb1.Start.Z)
+        {
+            result.Z = aabb1.Start.Z - aabb2.End.Z;
+            // result.Z = aabb2.End.Z - aabb1.Start.Z;
+        }
+        else
+        {
+            result.Z = 0;
+        }
+
+        return result;
+    }
 }

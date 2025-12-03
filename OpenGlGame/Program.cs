@@ -16,7 +16,11 @@ internal static class Program
             GameWindowSettings.Default,
             new NativeWindowSettings
             {
+#if DEBUG
+                WindowState = WindowState.Normal,
+#else
                 WindowState = WindowState.Fullscreen,
+#endif
                 ClientSize = (1280, 720),
                 MinimumClientSize = (640, 360),
                 Title = "OpenGL game",

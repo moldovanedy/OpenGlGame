@@ -5,6 +5,7 @@ using OpenGlGame.Chunks.Chunk01;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
+using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -102,7 +103,7 @@ public class Application : IDisposable
         }
 
         //useful for debugging
-        //_sceneManager.PhysicsUpdate();
+        // _sceneManager.PhysicsUpdate();
 
         _sceneManager.Update(
             new SceneManager.FrameParameters(
@@ -174,7 +175,7 @@ public class Application : IDisposable
             }
         }
 
-        _sceneManager.PlayerCamera.InputMovementChanged(_playerDirection);
+        Player.Instance.InputMovementChanged(_playerDirection);
     }
 
     internal void OnKeyDown(KeyboardKeyEventArgs e)
@@ -233,7 +234,7 @@ public class Application : IDisposable
             }
         }
 
-        _sceneManager.PlayerCamera.InputMovementChanged(_playerDirection);
+        Player.Instance.InputMovementChanged(_playerDirection);
     }
 
     private float _lastX;
@@ -256,7 +257,7 @@ public class Application : IDisposable
         _lastX = e.X;
         _lastY = e.Y;
 
-        _sceneManager.PlayerCamera.InputLookDirectionChanged(xOffset, yOffset);
+        Player.Instance.Camera.InputLookDirectionChanged(xOffset, yOffset);
     }
 
     #endregion

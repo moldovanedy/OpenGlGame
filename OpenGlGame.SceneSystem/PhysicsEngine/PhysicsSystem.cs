@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
 using OpenTK.Mathematics;
 
@@ -9,20 +10,48 @@ public class PhysicsSystem
 {
     public static readonly Vector3 GravitationalAccelerationVector = new(0.0f, -9.81f, 0.0f);
 
+    public static PhysicsSystem Instance
+    {
+        get
+        {
+            _instance ??= new PhysicsSystem();
+            return _instance;
+        }
+    }
+
+    private static PhysicsSystem? _instance;
+
     public const double PHYSICS_TICK_SECONDS = 1.0 / 60.0;
 
-    public void PhysicsUpdate(Player player, List<SceneManager.WorldChunk> currentChunks)
-    {
-        List<RigidBody> rigidBodies = [];
-        List<StaticCollider> staticColliders = [];
+    private readonly List<RigidBody> _rigidBodies = [];
+    private readonly List<StaticCollider> _staticColliders = [];
 
-        var playerRigidBody = (RigidBody?)player.GetComponent(nameof(RigidBody));
+    private PhysicsSystem()
+    {
+    }
+
+    public List<RigidBody> GetCurrentRigidBodies()
+    {
+        return _rigidBodies;
+    }
+
+    public List<StaticCollider> GetCurrentStaticColliders()
+    {
+        return _staticColliders;
+    }
+
+    public void RecreatePhysicsComponentsLists(List<SceneManager.WorldChunk> currentChunks)
+    {
+        _rigidBodies.Clear();
+        _staticColliders.Clear();
+
+        var playerRigidBody = (RigidBody?)Player.Instance.GetComponent(nameof(RigidBody));
         if (playerRigidBody == null)
         {
             throw new Exception("Player did not have a RigidBody component");
         }
 
-        rigidBodies.Add(playerRigidBody);
+        _rigidBodies.Add(playerRigidBody);
 
         foreach (SceneManager.WorldChunk currentChunk in currentChunks)
         {
@@ -31,18 +60,21 @@ public class PhysicsSystem
                 var rigidBody = (RigidBody?)gameObject.GetComponent(nameof(RigidBody));
                 if (rigidBody != null)
                 {
-                    rigidBodies.Add(rigidBody);
+                    _rigidBodies.Add(rigidBody);
                 }
 
                 var staticCollider = (StaticCollider?)gameObject.GetComponent(nameof(StaticCollider));
                 if (staticCollider != null)
                 {
-                    staticColliders.Add(staticCollider);
+                    _staticColliders.Add(staticCollider);
                 }
             }
         }
+    }
 
-        foreach (RigidBody rigidBody in rigidBodies)
+    public void PhysicsUpdate()
+    {
+        foreach (RigidBody rigidBody in _rigidBodies)
         {
             if (rigidBody.IsAffectedByGravity)
             {
@@ -52,13 +84,13 @@ public class PhysicsSystem
         }
 
         //apply forces
-        foreach (RigidBody rigidBody in rigidBodies)
+        foreach (RigidBody rigidBody in _rigidBodies)
         {
             VerletIntegrate(rigidBody);
         }
 
         //collision detection
-        foreach (RigidBody rigidBody in rigidBodies)
+        foreach (RigidBody rigidBody in _rigidBodies)
         {
             var objectTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
             if (objectTransform == null)
@@ -66,7 +98,7 @@ public class PhysicsSystem
                 throw new Exception("RigidBody did not have a Transform3D component");
             }
 
-            foreach (RigidBody otherRigidBody in rigidBodies)
+            foreach (RigidBody otherRigidBody in _rigidBodies)
             {
                 if (otherRigidBody == rigidBody)
                 {
@@ -79,7 +111,7 @@ public class PhysicsSystem
                 }
             }
 
-            foreach (StaticCollider staticCollider in staticColliders)
+            foreach (StaticCollider staticCollider in _staticColliders)
             {
                 var colliderTransform = (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D));
                 if (colliderTransform == null)
@@ -106,7 +138,7 @@ public class PhysicsSystem
     private static void ApplyFriction(RigidBody rigidBody)
     {
         Vector3 normalVector = new(0f, 1f, 0f);
-        const float COEFFICIENT_OF_FRICTION = 0.15f;
+        const float COEFFICIENT_OF_FRICTION = 0.5f;
 
         Vector3 tangent =
             rigidBody.DerivedVelocity
@@ -117,14 +149,13 @@ public class PhysicsSystem
         }
 
         Vector3 tangentDir = tangent / tangent.Length;
-        float normalForce =
-            rigidBody.Mass * -GravitationalAccelerationVector.Y * (float)PHYSICS_TICK_SECONDS;
+        float normalForce = rigidBody.Mass * -GravitationalAccelerationVector.Y * (float)PHYSICS_TICK_SECONDS;
         float frictionMagnitude = COEFFICIENT_OF_FRICTION * normalForce;
 
         rigidBody.AddForce(-tangentDir * frictionMagnitude);
     }
 
-    private static Vector3 GetSurfaceNormal(StaticCollider staticCollider)
+    public static Vector3 GetSurfaceNormal(StaticCollider staticCollider)
     {
         Transform3D colliderTransform =
             (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D))
