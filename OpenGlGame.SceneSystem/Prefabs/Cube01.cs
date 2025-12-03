@@ -2,6 +2,8 @@ using System;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Components;
+using OpenGlGame.SceneSystem.PhysicsEngine;
+using OpenTK.Mathematics;
 
 namespace OpenGlGame.SceneSystem.Prefabs;
 
@@ -10,11 +12,17 @@ public class Cube01 : GameObject
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private MeshMaterial _material;
 
-    public Cube01()
+    public Cube01(Transform3D transform)
     {
         _material = CommonMaterials.CreateAlbedoMaterial();
 
-        AddComponent(new Transform3D());
+        AddComponent(transform);
+        AddComponent(new RigidBody
+        {
+            Mass = 12.0f,
+            BoundingBox = new Aabb(new Vector3(-1f, -1f, -1f), new Vector3(2f, 2f, 2f)),
+            RestitutionCoefficient = 0.3f
+        });
 
         VertexBuffers? buffers =
             ResourceManager.Instance.GetVertexBuffers(

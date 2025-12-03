@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Timers;
 using OpenGlGame.Chunks.Chunk01;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
+using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -17,6 +19,7 @@ public class Application : IDisposable
 {
     private readonly SceneManager _sceneManager = new();
     private GameWindow? _windowRef;
+    private Timer? _physicsUpdateTimer;
 
     //Wayland does not allow a window to control its own window mode...
     private bool _isWayland;
@@ -25,9 +28,12 @@ public class Application : IDisposable
 
     private int _windowedWidth = 800;
     private int _windowedHeight = 600;
+    private bool _isPaused;
 
     public void Dispose()
     {
+        _physicsUpdateTimer?.Stop();
+        _physicsUpdateTimer = null;
         ResourceManager.Instance.Dispose();
         GC.SuppressFinalize(this);
     }
@@ -57,12 +63,16 @@ public class Application : IDisposable
         List<SceneManager.WorldChunk> chunks =
         [
             new LevelChunk01(),
-            new([], Vector3.Zero, Vector3.One),
-            new([], Vector3.Zero, Vector3.One),
-            new([], Vector3.Zero, Vector3.One),
-            new([], Vector3.Zero, Vector3.One)
+            new([], new Aabb(Vector3.Zero, Vector3.One)),
+            new([], new Aabb(Vector3.Zero, Vector3.One)),
+            new([], new Aabb(Vector3.Zero, Vector3.One)),
+            new([], new Aabb(Vector3.Zero, Vector3.One))
         ];
         _sceneManager.SetLevel(chunks);
+
+        _physicsUpdateTimer = new Timer(PhysicsSystem.PHYSICS_TICK_SECONDS * 1000.0);
+        _physicsUpdateTimer.Elapsed += PhysicsUpdate;
+        _physicsUpdateTimer.Start();
     }
 
     internal void Update(FrameEventArgs e, GameWindow window)
@@ -86,10 +96,13 @@ public class Application : IDisposable
             _isFullscreenToggleRequested = false;
         }
 
-        if (e.Time > 0.2f)
+        if (e.Time > 0.2f || _isPaused)
         {
             return;
         }
+
+        //useful for debugging
+        //_sceneManager.PhysicsUpdate();
 
         _sceneManager.Update(
             new SceneManager.FrameParameters(
@@ -98,6 +111,21 @@ public class Application : IDisposable
                 e.Time));
 
         window.SwapBuffers();
+    }
+
+    internal void PhysicsUpdate(object? sender, ElapsedEventArgs e)
+    {
+        if (_isPaused)
+        {
+            return;
+        }
+
+        _sceneManager.PhysicsUpdate();
+    }
+
+    internal void FocusChanged(FocusedChangedEventArgs e)
+    {
+        _isPaused = !e.IsFocused;
     }
 
     #region Input

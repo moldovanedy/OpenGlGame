@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenTK.Mathematics;
 using OpenGlGame.Rendering;
+using OpenGlGame.SceneSystem.PhysicsEngine;
 
 namespace OpenGlGame.SceneSystem;
 
@@ -10,27 +11,33 @@ public class SceneManager
     public class WorldChunk
     {
         public GameObject[] GameObjects { get; }
-        public Vector3 Center { get; }
-        public Vector3 Extents { get; }
+        public Aabb AaBoundingBox { get; }
 
-        public WorldChunk(GameObject[] gameObjects, Vector3 center, Vector3 extents)
+        public WorldChunk(GameObject[] gameObjects, Aabb aaBoundingBox)
         {
             GameObjects = gameObjects;
-            Center = center;
-            Extents = extents;
+            AaBoundingBox = aaBoundingBox;
         }
     }
 
     public record FrameParameters(int FramebufferWidth, int FramebufferHeight, double DeltaTime);
 
 
-    public Camera PlayerCamera { get; private set; } = new();
+    public Camera PlayerCamera { get; private set; }
+    public Player PlayerObject { get; private set; }
+    public PhysicsSystem PhysSystem { get; private set; } = new();
 
     private List<WorldChunk> _levelChunks = [];
     private readonly Renderer _systemRenderer = new();
 
     private readonly List<WorldChunk> _currentChunks = [];
     private int _currentChunkIndex;
+
+    public SceneManager()
+    {
+        PlayerObject = new Player();
+        PlayerCamera = new Camera(PlayerObject);
+    }
 
     public void SetLevel(List<WorldChunk> allChunks)
     {
@@ -57,6 +64,7 @@ public class SceneManager
         }
 
         PlayerCamera.Update(frameParams.DeltaTime);
+        PlayerObject.Update(frameParams.DeltaTime);
 
         CheckChunkLoading(PlayerCamera.Position);
         _systemRenderer.UpdateViewProjectionMatrix(PlayerCamera.GetViewProjectionMatrix());
@@ -70,6 +78,11 @@ public class SceneManager
         }
 
         _systemRenderer.Render(frameParams.FramebufferWidth, frameParams.FramebufferHeight);
+    }
+
+    public void PhysicsUpdate()
+    {
+        PhysSystem.PhysicsUpdate(PlayerObject, _currentChunks);
     }
 
     private void LoadChunk(WorldChunk chunk)
@@ -94,11 +107,7 @@ public class SceneManager
 
     private void CheckChunkLoading(Vector3 cameraPos)
     {
-        if (
-            !IsPointInsideAabb(
-                cameraPos,
-                _levelChunks[_currentChunkIndex].Center,
-                _levelChunks[_currentChunkIndex].Extents))
+        if (!Aabb.IsPointInside(_levelChunks[_currentChunkIndex].AaBoundingBox, cameraPos))
         {
             if (_levelChunks.Count == 1)
             {
@@ -106,10 +115,7 @@ public class SceneManager
             }
 
             if (_currentChunkIndex != 0
-                && IsPointInsideAabb(
-                    cameraPos,
-                    _levelChunks[_currentChunkIndex - 1].Center,
-                    _levelChunks[_currentChunkIndex].Extents))
+                && !Aabb.IsPointInside(_levelChunks[_currentChunkIndex - 1].AaBoundingBox, cameraPos))
             {
                 _currentChunkIndex--;
                 if (_currentChunkIndex - 2 < _levelChunks.Count)
@@ -120,10 +126,7 @@ public class SceneManager
                 UnloadChunk(_levelChunks[_currentChunkIndex + 1]);
             }
             else if (_currentChunkIndex < _levelChunks.Count - 1
-                     && IsPointInsideAabb(
-                         cameraPos,
-                         _levelChunks[_currentChunkIndex + 1].Center,
-                         _levelChunks[_currentChunkIndex].Extents))
+                     && !Aabb.IsPointInside(_levelChunks[_currentChunkIndex + 1].AaBoundingBox, cameraPos))
             {
                 _currentChunkIndex++;
                 if (_currentChunkIndex + 2 < _levelChunks.Count)
@@ -138,40 +141,5 @@ public class SceneManager
                 throw new Exception("Unexpected condition: outside of adjacent chunks");
             }
         }
-    }
-
-    private static bool IsPointInsideAabb(Vector3 point, Vector3 cubeCenter, Vector3 cubeSize)
-    {
-        if (cubeCenter.X - cubeSize.X / 2.0 > point.X)
-        {
-            return false;
-        }
-
-        if (cubeCenter.X + cubeSize.X / 2.0 < point.X)
-        {
-            return false;
-        }
-
-        if (cubeCenter.Y - cubeSize.Y / 2.0 > point.Y)
-        {
-            return false;
-        }
-
-        if (cubeCenter.Y + cubeSize.Y / 2.0 < point.Y)
-        {
-            return false;
-        }
-
-        if (cubeCenter.Z - cubeSize.Z / 2.0 > point.Z)
-        {
-            return false;
-        }
-
-        if (cubeCenter.Z + cubeSize.Z / 2.0 < point.Z)
-        {
-            return false;
-        }
-
-        return true;
     }
 }

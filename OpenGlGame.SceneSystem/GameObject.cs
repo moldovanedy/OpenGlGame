@@ -56,11 +56,6 @@ public class GameObject
         return _components.GetValueOrDefault(name);
     }
 
-    public T? GetComponent<T>() where T : IGameObjectComponent
-    {
-        return (T?)_components.GetValueOrDefault(nameof(T));
-    }
-
     public bool RemoveComponent(string name)
     {
         if (_components.TryGetValue(name, out IGameObjectComponent? value))

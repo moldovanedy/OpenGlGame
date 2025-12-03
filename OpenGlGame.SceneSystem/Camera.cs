@@ -1,5 +1,6 @@
 using System;
 using OpenGlGame.Rendering;
+using OpenGlGame.SceneSystem.Components;
 using OpenTK.Mathematics;
 
 namespace OpenGlGame.SceneSystem;
@@ -16,10 +17,13 @@ public class Camera
         Right = 8
     }
 
+    private Player _playerRef;
+
     public Vector3 Position { get; private set; } = new(0.0f, 0.0f, -3.0f);
 
     // private const float MAX_SPEED_SPRINT = 10.0f;
-    private const float MAX_SPEED_RUNNING = 6.0f;
+    // private const float MAX_SPEED_RUNNING = 6.0f;
+    // private const float MAX_SPEED_RUNNING_SIDEWAYS = 3.0f;
     private const float MOUSE_SENSITIVITY = 0.35f;
 
     private CameraMovement _currentMovingDirections;
@@ -32,8 +36,9 @@ public class Camera
     private Vector3 _rightVector;
     private readonly Vector3 _worldUpVector = new(0.0f, 1.0f, 0.0f);
 
-    public Camera()
+    public Camera(Player player)
     {
+        _playerRef = player;
         UpdateCameraVectors();
     }
 
@@ -48,27 +53,46 @@ public class Camera
 
     internal void Update(double deltaTime)
     {
-        float velocity = (float)(MAX_SPEED_RUNNING * deltaTime);
+        //TODO: implement a Kinematic Character Controller, as the character being a RigidBody is very difficult to
+        // control
+        var playerRigidBody = (RigidBody?)_playerRef.GetComponent(nameof(RigidBody));
+        if (playerRigidBody == null)
+        {
+            throw new Exception("Camera: player didn't have a RigidBody");
+        }
+
         if ((_currentMovingDirections & CameraMovement.Forward) != CameraMovement.None)
         {
-            Position += _frontVector * velocity;
+            playerRigidBody.AddForce(_frontVector * playerRigidBody.Mass * (float)(deltaTime * 60f) * 5.0f);
         }
 
         if ((_currentMovingDirections & CameraMovement.Backward) != CameraMovement.None)
         {
-            Position -= _frontVector * velocity;
+            playerRigidBody.AddForce(-_frontVector * playerRigidBody.Mass * (float)(deltaTime * 60f) * 5.0f);
         }
 
         if ((_currentMovingDirections & CameraMovement.Left) != CameraMovement.None)
         {
-            Position -= _rightVector * velocity;
+            playerRigidBody.AddForce(-_rightVector * playerRigidBody.Mass * (float)(deltaTime * 60f) * 5.0f);
         }
 
         if ((_currentMovingDirections & CameraMovement.Right) != CameraMovement.None)
         {
-            Position += _rightVector * velocity;
+            playerRigidBody.AddForce(_rightVector * playerRigidBody.Mass * (float)(deltaTime * 60f) * 5.0f);
         }
 
+        //slow down the player 
+        if (_currentMovingDirections == CameraMovement.None)
+        {
+            Vector3 horizontalVelocity =
+                new(playerRigidBody.DerivedVelocity.X, 0f, playerRigidBody.DerivedVelocity.Z);
+            Vector3 dragAcceleration =
+                -horizontalVelocity * ComputeDecelerationRate(horizontalVelocity);
+            Vector3 dragForce = dragAcceleration * playerRigidBody.Mass * (float)(deltaTime * 60f);
+            playerRigidBody.AddForce(dragForce);
+        }
+
+        Position = ((Transform3D?)_playerRef.GetComponent(nameof(Transform3D)))?.Position ?? Position;
         UpdateCameraVectors();
     }
 
@@ -102,5 +126,10 @@ public class Camera
         _frontVector = front.Normalized();
         _rightVector = Vector3.Cross(_frontVector, _worldUpVector).Normalized();
         _upVector = Vector3.Cross(_rightVector, _frontVector).Normalized();
+    }
+
+    private float ComputeDecelerationRate(Vector3 velocity)
+    {
+        return 120f * (float)Math.Clamp(1.0 / (velocity.Length * 15.0), 0.5f, 20f);
     }
 }

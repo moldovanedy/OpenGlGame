@@ -9,17 +9,7 @@ public class MeshRenderer : IGameObjectComponent
 {
     public string Name => "MeshRenderer";
 
-    public GameObject? Owner
-    {
-        get => _owner;
-        set
-        {
-            _owner = value;
-            _ownerTransform = value?.GetComponent(nameof(Transform3D)) as Transform3D;
-        }
-    }
-
-    private GameObject? _owner;
+    public GameObject? Owner { get; set; }
 
     public MeshMaterial? Material { get; set; }
 
@@ -29,6 +19,7 @@ public class MeshRenderer : IGameObjectComponent
 
     public void EnterScene()
     {
+        _ownerTransform = Owner?.GetComponent(nameof(Transform3D)) as Transform3D;
     }
 
     public void ExitScene()
@@ -39,7 +30,7 @@ public class MeshRenderer : IGameObjectComponent
     {
         if (VertBuffers != null && Material != null)
         {
-            _owner?.SystemRenderer?.AddCommand(
+            Owner?.SystemRenderer?.AddCommand(
                 new DrawOperation(
                     VertBuffers,
                     Material,

@@ -29,6 +29,7 @@ internal static class Program
         _window.Load += _app.Load;
         _window.RenderFrame += Update;
         _window.FramebufferResize += Application.FramebufferResize;
+        _window.FocusedChanged += _app.FocusChanged;
 
         _window.KeyDown += _app.OnKeyDown;
         _window.KeyUp += _app.OnKeyUp;
@@ -39,6 +40,7 @@ internal static class Program
         _window.Load -= _app.Load;
         _window.RenderFrame -= Update;
         _window.FramebufferResize -= Application.FramebufferResize;
+        _window.FocusedChanged -= _app.FocusChanged;
 
         _window.KeyDown -= _app.OnKeyDown;
         _window.KeyUp -= _app.OnKeyUp;

@@ -2,6 +2,7 @@ using System;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Components;
+using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Mathematics;
 
 namespace OpenGlGame.SceneSystem.Prefabs;
@@ -26,6 +27,9 @@ public class Floor01 : GameObject
         _material.SetProperty("offset", new Vector2(0f, 0f));
 
         AddComponent(transform);
+        AddComponent(
+            new StaticCollider(
+                new Aabb(new Vector3(-0.5f, -0.005f, -0.5f), new Vector3(1f, 0.01f, 1f))));
 
         VertexBuffers? buffers =
             ResourceManager.Instance.GetVertexBuffers("/assets/models/floor_01/floor_01.glb.vert01")
