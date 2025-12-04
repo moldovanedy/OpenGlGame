@@ -115,7 +115,7 @@ public class ResourceManager : IDisposable
 
         //if a value on the same ID already exists, overwrite it
         Shader? existingValue = null;
-        if (_vertexBuffers.TryGetValue(id, out WeakReference? existingRef))
+        if (_shaders.TryGetValue(id, out WeakReference? existingRef))
         {
             existingValue = existingRef.Target as Shader;
         }
@@ -148,7 +148,7 @@ public class ResourceManager : IDisposable
 
         //if a value on the same ID already exists, overwrite it
         Texture? existingValue = null;
-        if (_vertexBuffers.TryGetValue(id, out WeakReference? existingRef))
+        if (_textures.TryGetValue(id, out WeakReference? existingRef))
         {
             existingValue = existingRef.Target as Texture;
         }
@@ -243,7 +243,7 @@ public class ResourceManager : IDisposable
 
         //if a value on the same ID already exists, overwrite it
         VertexAttribDescriptors? existingValue = null;
-        if (_vertexBuffers.TryGetValue(id, out WeakReference? existingRef))
+        if (_vertexAttribDescriptors.TryGetValue(id, out WeakReference? existingRef))
         {
             existingValue = existingRef.Target as VertexAttribDescriptors;
         }

@@ -185,7 +185,7 @@ public static unsafe class ModelLoaderUtility
 
             textureBaseId = textureBaseId.Insert(
                 textureBaseId.LastIndexOf('.'), (i + 1).ToString("D2"));
-            Texture? texResult = ResourceManager.Instance.ReadTextureFromFile(textureBaseId, ref format);
+            Texture? texResult = ResourceManager.Instance.GetOrCreateTexture(textureBaseId, format);
             if (texResult == null)
             {
                 throw new Exception("Model loader: Could not read texture file with ID: " + textureBaseId);

@@ -19,6 +19,8 @@ public class Player : GameObject
 
     private static Player? _instance;
 
+    public const bool FREE_ROAM_CAMERA = false;
+
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
 
@@ -32,20 +34,33 @@ public class Player : GameObject
         UpdateEvent += OnUpdate;
 
         _transform = new Transform3D();
+
+        //spawn position for debugging
+        // _transform.Position = new Vector3(20.5f, 3.5f, 20.5f);
+
         AddComponent(_transform);
 
         Camera = new Camera();
 
-        _rigidBody = new RigidBody
+        if (!FREE_ROAM_CAMERA)
         {
-            Mass = 70f,
-            BoundingBox = new Aabb(new Vector3(-0.3f, -0.875f, -0.15f), new Vector3(0.6f, 1.75f, 0.3f))
-        };
-        AddComponent(_rigidBody);
+            _rigidBody = new RigidBody
+            {
+                Mass = 70f,
+                BoundingBox = new Aabb(new Vector3(-0.3f, -0.875f, -0.15f), new Vector3(0.6f, 1.75f, 0.3f)),
+                RestitutionCoefficient = 0f
+            };
+            AddComponent(_rigidBody);
+        }
     }
 
     public void PhysicsUpdate()
     {
+        if (FREE_ROAM_CAMERA)
+        {
+            return;
+        }
+
         _isOnGround = false;
         List<StaticCollider> staticColliders = PhysicsSystem.Instance.GetCurrentStaticColliders();
         foreach (StaticCollider collider in staticColliders)
@@ -104,40 +119,69 @@ public class Player : GameObject
 
     private void OnUpdate(double deltaTime)
     {
-        var playerRigidBody = (RigidBody?)GetComponent(nameof(RigidBody));
-        if (playerRigidBody == null)
-        {
-            throw new Exception("Camera: player didn't have a RigidBody");
-        }
-
         Camera.Update(deltaTime);
 
-        Vector3 runningFrontVector = new(Camera.FrontVector.X, 0f, Camera.FrontVector.Z);
-        Vector3 runningRightVector = new(Camera.RightVector.X, 0f, Camera.RightVector.Z);
-
-        if (!_isOnGround)
+        if (FREE_ROAM_CAMERA)
         {
-            return;
+            Vector3 runningFrontVector = Camera.FrontVector;
+            Vector3 runningRightVector = Camera.RightVector;
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
+            {
+                _transform.Position += runningFrontVector * (float)deltaTime * 6f;
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Backward) != Camera.CameraMovement.None)
+            {
+                _transform.Position += -runningFrontVector * (float)deltaTime * 6f;
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Left) != Camera.CameraMovement.None)
+            {
+                _transform.Position += -runningRightVector * (float)deltaTime * 6f;
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Right) != Camera.CameraMovement.None)
+            {
+                _transform.Position += runningRightVector * (float)deltaTime * 6f;
+            }
         }
-
-        if ((_currentMovingDirections & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
+        else
         {
-            playerRigidBody.SetDirectVelocity(runningFrontVector * 6f);
-        }
+            Vector3 runningFrontVector = new(Camera.FrontVector.X, 0f, Camera.FrontVector.Z);
+            Vector3 runningRightVector = new(Camera.RightVector.X, 0f, Camera.RightVector.Z);
 
-        if ((_currentMovingDirections & Camera.CameraMovement.Backward) != Camera.CameraMovement.None)
-        {
-            playerRigidBody.SetDirectVelocity(-runningFrontVector * 6f);
-        }
 
-        if ((_currentMovingDirections & Camera.CameraMovement.Left) != Camera.CameraMovement.None)
-        {
-            playerRigidBody.SetDirectVelocity(-runningRightVector * 6f);
-        }
+            if (!_isOnGround)
+            {
+                return;
+            }
 
-        if ((_currentMovingDirections & Camera.CameraMovement.Right) != Camera.CameraMovement.None)
-        {
-            playerRigidBody.SetDirectVelocity(runningRightVector * 6f);
+
+            if (_currentMovingDirections == Camera.CameraMovement.None)
+            {
+                _rigidBody.SetDirectVelocity(Vector3.Zero);
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
+            {
+                _rigidBody.SetDirectVelocity(runningFrontVector * 6f);
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Backward) != Camera.CameraMovement.None)
+            {
+                _rigidBody.SetDirectVelocity(-runningFrontVector * 6f);
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Left) != Camera.CameraMovement.None)
+            {
+                _rigidBody.SetDirectVelocity(-runningRightVector * 6f);
+            }
+
+            if ((_currentMovingDirections & Camera.CameraMovement.Right) != Camera.CameraMovement.None)
+            {
+                _rigidBody.SetDirectVelocity(runningRightVector * 6f);
+            }
         }
     }
 }

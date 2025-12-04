@@ -29,7 +29,7 @@ public class Floor01 : GameObject
         AddComponent(transform);
         AddComponent(
             new StaticCollider(
-                new Aabb(new Vector3(-0.5f, -0.005f, -0.5f), new Vector3(1f, 0.01f, 1f))));
+                new Aabb(new Vector3(-0.5f, -0.2f, -0.5f), new Vector3(1f, 0.2f, 1f))));
 
         VertexBuffers? buffers =
             ResourceManager.Instance.GetVertexBuffers("/assets/models/floor_01/floor_01.glb.vert01")

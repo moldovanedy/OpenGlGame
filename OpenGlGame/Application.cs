@@ -33,6 +33,8 @@ public class Application : IDisposable
 
     public void Dispose()
     {
+        Player.Instance.ExitScene();
+
         _physicsUpdateTimer?.Stop();
         _physicsUpdateTimer = null;
         ResourceManager.Instance.Dispose();
@@ -64,12 +66,14 @@ public class Application : IDisposable
         List<SceneManager.WorldChunk> chunks =
         [
             new LevelChunk01(),
-            new([], new Aabb(Vector3.Zero, Vector3.One)),
-            new([], new Aabb(Vector3.Zero, Vector3.One)),
-            new([], new Aabb(Vector3.Zero, Vector3.One)),
-            new([], new Aabb(Vector3.Zero, Vector3.One))
+            new(new Aabb(Vector3.Zero, Vector3.One)),
+            new(new Aabb(Vector3.Zero, Vector3.One)),
+            new(new Aabb(Vector3.Zero, Vector3.One)),
+            new(new Aabb(Vector3.Zero, Vector3.One))
         ];
         _sceneManager.SetLevel(chunks);
+
+        Player.Instance.EnterScene();
 
         _physicsUpdateTimer = new Timer(PhysicsSystem.PHYSICS_TICK_SECONDS * 1000.0);
         _physicsUpdateTimer.Elapsed += PhysicsUpdate;
@@ -103,7 +107,7 @@ public class Application : IDisposable
         }
 
         //useful for debugging
-        // _sceneManager.PhysicsUpdate();
+        _sceneManager.PhysicsUpdate();
 
         _sceneManager.Update(
             new SceneManager.FrameParameters(
@@ -116,12 +120,12 @@ public class Application : IDisposable
 
     internal void PhysicsUpdate(object? sender, ElapsedEventArgs e)
     {
-        if (_isPaused)
-        {
-            return;
-        }
-
-        _sceneManager.PhysicsUpdate();
+        // if (_isPaused)
+        // {
+        //     return;
+        // }
+        //
+        // _sceneManager.PhysicsUpdate();
     }
 
     internal void FocusChanged(FocusedChangedEventArgs e)

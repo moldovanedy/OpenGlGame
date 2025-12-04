@@ -17,7 +17,7 @@ public class Camera
         Right = 8
     }
 
-    public Vector3 Position { get; private set; } = new(0.0f, 0.0f, -3.0f);
+    public Vector3 Position { get; private set; }
 
     private const float MOUSE_SENSITIVITY = 0.35f;
 

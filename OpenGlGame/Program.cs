@@ -24,7 +24,7 @@ internal static class Program
                 ClientSize = (1280, 720),
                 MinimumClientSize = (640, 360),
                 Title = "OpenGL game",
-                NumberOfSamples = 4,
+                NumberOfSamples = 8,
                 Vsync = VSyncMode.On
             });
         _window.CursorState = CursorState.Grabbed;

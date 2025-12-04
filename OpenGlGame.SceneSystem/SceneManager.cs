@@ -11,12 +11,11 @@ public class SceneManager
 {
     public class WorldChunk
     {
-        public GameObject[] GameObjects { get; }
+        public GameObject[] GameObjects { get; protected set; } = [];
         public Aabb AaBoundingBox { get; }
 
-        public WorldChunk(GameObject[] gameObjects, Aabb aaBoundingBox)
+        public WorldChunk(Aabb aaBoundingBox)
         {
-            GameObjects = gameObjects;
             AaBoundingBox = aaBoundingBox;
         }
     }

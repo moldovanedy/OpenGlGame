@@ -30,6 +30,9 @@ public class RigidBody : IPhysicsObjectComponent
     internal Vector3 InternalPosition { get; set; }
     internal Vector3 InternalPreviousPosition { get; set; }
 
+    //workaround for player
+    internal bool InternalManualVelocityThisFrame { get; set; }
+
     public Vector3 DerivedVelocity => InternalPosition - InternalPreviousPosition;
 
     public void EnterScene()
@@ -64,5 +67,6 @@ public class RigidBody : IPhysicsObjectComponent
     public void SetDirectVelocity(Vector3 velocity)
     {
         InternalPosition = InternalPreviousPosition + (float)PhysicsSystem.PHYSICS_TICK_SECONDS * velocity;
+        InternalManualVelocityThisFrame = true;
     }
 }
