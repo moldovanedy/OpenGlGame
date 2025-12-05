@@ -106,8 +106,8 @@ public static unsafe class ModelLoaderUtility
 
         string dirPath = assetPath.Substring(0, indexOfSlash + 1);
 
-        ProcessTextures(mat, TextureType.BaseColor, dirPath + "tex_albedo.png");
-        // ProcessTextures(mat, TextureType.Diffuse, dirPath + "tex_diffuse.png");
+        // ProcessTextures(mat, TextureType.BaseColor, dirPath + "tex_albedo.png");
+        ProcessTextures(mat, TextureType.Diffuse, dirPath + "tex_diffuse.png");
         // ProcessTextures(mat, TextureType.Specular, dirPath + "tex_specular.png");
         // ProcessTextures(mat, TextureType.Normals, dirPath + "tex_normal.png");
 

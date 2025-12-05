@@ -14,7 +14,7 @@ public class Cube01 : GameObject
 
     public Cube01(Transform3D transform)
     {
-        _material = CommonMaterials.CreateAlbedoMaterial();
+        _material = CommonMaterials.CreateDiffuseUnlitMaterial();
 
         AddComponent(transform);
         AddComponent(new RigidBody
@@ -29,7 +29,7 @@ public class Cube01 : GameObject
                 "/assets/models/cube_01/cube_01.glb.vert01")
             ?? ResourceManager.Instance.CreateVertexBuffersFromFile(
                 "/assets/models/cube_01/cube_01.glb.vert01",
-                CommonVertexAttribDescriptors.AlbedoTextureMesh);
+                CommonVertexAttribDescriptors.DiffuseTextureMesh);
         if (buffers == null)
         {
             throw new NullReferenceException("Vertex buffers were not found");

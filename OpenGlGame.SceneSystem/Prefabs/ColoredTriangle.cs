@@ -14,7 +14,7 @@ public class ColoredTriangle : GameObject
 
     public ColoredTriangle()
     {
-        _material = CommonMaterials.CreateVertColorsMaterial();
+        _material = CommonMaterials.CreateVertColorsUnlitMaterial();
         AddComponent(new Transform3D());
 
         float[] triangleVertices =

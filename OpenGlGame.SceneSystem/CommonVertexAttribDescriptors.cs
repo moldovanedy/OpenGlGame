@@ -6,11 +6,11 @@ namespace OpenGlGame.SceneSystem;
 
 public static class CommonVertexAttribDescriptors
 {
-    public static readonly VertexAttribDescriptors AlbedoTextureMesh =
+    public static readonly VertexAttribDescriptors DiffuseTextureMesh =
         ResourceManager.Instance.GetVertexAttributeDescriptors(
-            "/assets/vertex_attributes/runtime_gen/albedo_texture_mesh")
+            "/assets/vertex_attributes/runtime_gen/diffuse_texture_mesh")
         ?? ResourceManager.Instance.CreateVertexAttribDescriptors(
-            "/assets/vertex_attributes/runtime_gen/albedo_texture_mesh",
+            "/assets/vertex_attributes/runtime_gen/diffuse_texture_mesh",
             new VertexAttribDescriptors.AttribDescriptor(
                 0,
                 3,

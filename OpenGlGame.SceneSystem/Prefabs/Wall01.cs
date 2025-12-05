@@ -14,15 +14,15 @@ public class Wall01 : GameObject
 
     public Wall01(Transform3D transform)
     {
-        Texture? albedo = ResourceManager.Instance.GetOrCreateTexture(
-            "/assets/models/wall_01/tex_albedo01.png",
+        Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
+            "/assets/models/wall_01/tex_diffuse01.png",
             new Texture.TextureFormat());
-        if (albedo == null)
+        if (diffuseTex == null)
         {
             throw new NullReferenceException("Wall texture was not found");
         }
 
-        _material = CommonMaterials.CreateAlbedoTiledMaterial(albedo);
+        _material = CommonMaterials.CreateDiffuseTiledUnlitMaterial(diffuseTex);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 
@@ -35,7 +35,7 @@ public class Wall01 : GameObject
             ResourceManager.Instance.GetVertexBuffers("/assets/models/wall_01/wall_01.glb.vert01")
             ?? ResourceManager.Instance.CreateVertexBuffersFromFile(
                 "/assets/models/wall_01/wall_01.glb.vert01",
-                CommonVertexAttribDescriptors.AlbedoTextureMesh);
+                CommonVertexAttribDescriptors.DiffuseTextureMesh);
         if (buffers == null)
         {
             throw new NullReferenceException("Vertex buffers were not found");

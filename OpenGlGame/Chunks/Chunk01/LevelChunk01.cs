@@ -16,7 +16,7 @@ public class LevelChunk01 : SceneManager.WorldChunk
             new Cube01(
                 new Transform3D
                 {
-                    Position = new Vector3(0.0f, 2.0f, 15.0f)
+                    Position = new Vector3(1.5f, 2.0f, 15.0f)
                 }),
 
             #region Move training
@@ -49,14 +49,14 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(-4f, 0.25f, 10.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
                     Scale = new Vector3(30f, 1f, 4f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(4f, 0.25f, 6.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(22f, 1f, 4f)
                 }),
             new Wall01(
@@ -82,7 +82,7 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(16f, 0.25f, 22.5f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(5f, 1f, 4f)
                 }),
 

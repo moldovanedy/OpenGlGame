@@ -313,23 +313,6 @@ public class PhysicsSystem
         rigidBody.AddForce(-tangentDir * frictionMagnitude);
     }
 
-    public static Vector3 GetSurfaceNormal(StaticCollider staticCollider)
-    {
-        Transform3D colliderTransform =
-            (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D))
-            ?? new Transform3D();
-
-        //TODO: get the actual normal
-        Vector3 surfaceLocalNormal = new(0, 1, 0);
-        Matrix4 modelMatrix = colliderTransform.GetModelMatrix();
-        Matrix3 transposedInvertedMatrix =
-            new Matrix3(modelMatrix.Row0.Xyz, modelMatrix.Row1.Xyz, modelMatrix.Row2.Xyz)
-                .Inverted()
-                .Transposed();
-
-        return Vector3.Normalize(transposedInvertedMatrix * surfaceLocalNormal);
-    }
-
     private static void VerletIntegrate(RigidBody rigidBody)
     {
         var objectTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
@@ -357,6 +340,8 @@ public class PhysicsSystem
 
     private static void ResolveCollision(RigidBody rigidBody, StaticCollider staticCollider)
     {
+        //AI-generated... physics is hard
+
         var rigidBodyTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
         if (rigidBodyTransform == null)
         {
@@ -369,84 +354,215 @@ public class PhysicsSystem
             throw new Exception("StaticCollider did not have a Transform3D component");
         }
 
-        Aabb colliderAabb = new(staticCollider.BoundingBox, colliderTransform.GetModelMatrix());
-        float bounceBackOffset =
-            MathF.Abs(rigidBody.InternalAaBoundingBox.Start.Y) - Math.Abs(colliderAabb.End.Y) +
-            0.00001f;
-        Vector3 colliderNormal = GetSurfaceNormal(staticCollider);
+        // Sync AABB with the current transform in case it was moved by another collision this frame
+        rigidBody.InternalAaBoundingBox = new Aabb(rigidBody.BoundingBox, rigidBodyTransform.GetModelMatrix());
 
+        Aabb colliderAabb = new(staticCollider.BoundingBox, colliderTransform.GetModelMatrix());
+        Aabb rigidBodyAabb = rigidBody.InternalAaBoundingBox;
+
+        // Capture velocity BEFORE modifying position
         Vector3 velocity = rigidBody.DerivedVelocity;
-        rigidBody.InternalPosition += colliderNormal * bounceBackOffset;
+
+        // Calculate previous frame AABB to determine entry direction
+        // We approximate the previous AABB by shifting the current one back by the displacement
+        Vector3 displacement = rigidBody.InternalPosition - rigidBody.InternalPreviousPosition;
+        Vector3 prevStart = rigidBodyAabb.Start - displacement;
+        Vector3 prevEnd = rigidBodyAabb.End - displacement;
+
+        // Check which axes were overlapping in the previous frame
+        bool wasOverlapX = prevEnd.X > colliderAabb.Start.X && prevStart.X < colliderAabb.End.X;
+        bool wasOverlapY = prevEnd.Y > colliderAabb.Start.Y && prevStart.Y < colliderAabb.End.Y;
+        bool wasOverlapZ = prevEnd.Z > colliderAabb.Start.Z && prevStart.Z < colliderAabb.End.Z;
+
+        float overlapX1 = colliderAabb.End.X - rigidBodyAabb.Start.X;
+        float overlapX2 = rigidBodyAabb.End.X - colliderAabb.Start.X;
+        float overlapX = MathF.Min(overlapX1, overlapX2);
+
+        float overlapY1 = colliderAabb.End.Y - rigidBodyAabb.Start.Y;
+        float overlapY2 = rigidBodyAabb.End.Y - colliderAabb.Start.Y;
+        float overlapY = MathF.Min(overlapY1, overlapY2);
+
+        float overlapZ1 = colliderAabb.End.Z - rigidBodyAabb.Start.Z;
+        float overlapZ2 = rigidBodyAabb.End.Z - colliderAabb.Start.Z;
+        float overlapZ = MathF.Min(overlapZ1, overlapZ2);
+
+        // Identify the collision axis.
+        // We prioritize axes that were NOT overlapping previously (meaning we entered the collider along this axis).
+        int axis = -1; // 0: X, 1: Y, 2: Z
+
+        // Pure axis entry checks
+        if (!wasOverlapX && wasOverlapY && wasOverlapZ)
+        {
+            axis = 0;
+        }
+        else if (wasOverlapX && !wasOverlapY && wasOverlapZ)
+        {
+            axis = 1;
+        }
+        else if (wasOverlapX && wasOverlapY && !wasOverlapZ)
+        {
+            axis = 2;
+        }
+
+        // If no single-axis entry detected (e.g. corner hit or already inside), fall back to MTV (smallest overlap)
+        if (axis == -1)
+        {
+            float minOverlap = MathF.Min(overlapX, MathF.Min(overlapY, overlapZ));
+            if (MathF.Abs(minOverlap - overlapX) < 1e-6f)
+            {
+                axis = 0;
+            }
+            else if (MathF.Abs(minOverlap - overlapY) < 1e-6f)
+            {
+                axis = 1;
+            }
+            else
+            {
+                axis = 2;
+            }
+        }
+
+        Vector3 correctionVector;
+        float correctionAmount;
+        const float EPSILON = 0.0001f;
+
+        // Use centers to reliably determine which side we came from, preventing tunnelling
+        Vector3 prevCenter = (prevStart + prevEnd) * 0.5f;
+        Vector3 colliderCenter = (colliderAabb.Start + colliderAabb.End) * 0.5f;
+
+        switch (axis)
+        {
+            // X
+            case 0:
+            {
+                bool pushPositive = prevCenter.X > colliderCenter.X;
+                // If we were previously inside on this axis (fallback case), trust the shortest path
+                if (wasOverlapX)
+                {
+                    pushPositive = overlapX1 < overlapX2;
+                }
+
+                correctionAmount = pushPositive ? overlapX1 : overlapX2;
+                correctionVector = pushPositive
+                    ? new Vector3(correctionAmount + EPSILON, 0, 0)
+                    : new Vector3(-correctionAmount - EPSILON, 0, 0);
+                break;
+            }
+            // Y
+            case 1:
+            {
+                bool pushPositive = prevCenter.Y > colliderCenter.Y;
+                if (wasOverlapY)
+                {
+                    pushPositive = overlapY1 < overlapY2;
+                }
+
+                correctionAmount = pushPositive ? overlapY1 : overlapY2;
+                correctionVector = pushPositive
+                    ? new Vector3(0, correctionAmount + EPSILON, 0)
+                    : new Vector3(0, -correctionAmount - EPSILON, 0);
+                break;
+            }
+            // Z
+            default:
+            {
+                bool pushPositive = prevCenter.Z > colliderCenter.Z;
+                if (wasOverlapZ)
+                {
+                    pushPositive = overlapZ1 < overlapZ2;
+                }
+
+                correctionAmount = pushPositive ? overlapZ1 : overlapZ2;
+                correctionVector = pushPositive
+                    ? new Vector3(0, 0, correctionAmount + EPSILON)
+                    : new Vector3(0, 0, -correctionAmount - EPSILON);
+                break;
+            }
+        }
+
+        // Apply position correction
+        rigidBody.InternalPosition += correctionVector;
         rigidBodyTransform.Position = rigidBody.InternalPosition;
 
-        float reflectedVelocity = Vector3.Dot(velocity, colliderNormal);
-        Vector3 newVelocity =
-            velocity - (1f + rigidBody.RestitutionCoefficient) * reflectedVelocity * colliderNormal;
+        // IMPORTANT: Update AABB immediately so later calculations (or other colliders) see the corrected position
+        rigidBody.InternalAaBoundingBox = new Aabb(rigidBody.BoundingBox, rigidBodyTransform.GetModelMatrix());
 
-        rigidBody.InternalPreviousPosition = rigidBody.InternalPosition - newVelocity;
+        // Reflect velocity
+        Vector3 normal = correctionVector.Normalized();
+        float velocityAlongNormal = Vector3.Dot(velocity, normal);
+
+        // Only reflect if moving towards the collider
+        if (velocityAlongNormal < 0)
+        {
+            Vector3 newVelocity = velocity - (1f + rigidBody.RestitutionCoefficient) * velocityAlongNormal * normal;
+
+            // Update PreviousPosition for Verlet integration: PrevPos = Pos - NewVel * dt
+            // This ensures the bounce/slide is respected in the next frame
+            rigidBody.InternalPreviousPosition = rigidBody.InternalPosition - newVelocity;
+        }
 
 
+        // var rigidBodyTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
+        // if (rigidBodyTransform == null)
+        // {
+        //     throw new Exception("RigidBody did not have a Transform3D component");
+        // }
+        //
+        // var colliderTransform = (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D));
+        // if (colliderTransform == null)
+        // {
+        //     throw new Exception("StaticCollider did not have a Transform3D component");
+        // }
+        //
+        // Aabb colliderAabb = new(staticCollider.BoundingBox, colliderTransform.GetModelMatrix());
+        // Aabb rigidBodyAabb = rigidBody.InternalAaBoundingBox;
+        //
+        // float overlapX1 = colliderAabb.End.X - rigidBodyAabb.Start.X;
+        // float overlapX2 = rigidBodyAabb.End.X - colliderAabb.Start.X;
+        // float overlapX = MathF.Min(overlapX1, overlapX2);
+        //
+        // float overlapY1 = colliderAabb.End.Y - rigidBodyAabb.Start.Y;
+        // float overlapY2 = rigidBodyAabb.End.Y - colliderAabb.Start.Y;
+        // float overlapY = MathF.Min(overlapY1, overlapY2);
+        //
+        // float overlapZ1 = colliderAabb.End.Z - rigidBodyAabb.Start.Z;
+        // float overlapZ2 = rigidBodyAabb.End.Z - colliderAabb.Start.Z;
+        // float overlapZ = MathF.Min(overlapZ1, overlapZ2);
+        //
+        // float minOverlap = MathF.Min(overlapX, MathF.Min(overlapY, overlapZ));
+        //
+        // float correctionAmount = minOverlap + 0.0001f;
+        // Vector3 correctionVector = Vector3.Zero;
+        //
+        // if (MathF.Abs(minOverlap - overlapX) < 1e-6f)
+        // {
+        //     //push along X; if overlapX1 is smaller, rigidbody is to the right, push positive.
+        //     correctionVector = overlapX1 < overlapX2
+        //         ? new Vector3(correctionAmount, 0, 0)
+        //         : new Vector3(-correctionAmount, 0, 0);
+        // }
+        // else if (MathF.Abs(minOverlap - overlapY) < 1e-6f)
+        // {
+        //     correctionVector = overlapY1 < overlapY2
+        //         ? new Vector3(0, correctionAmount, 0)
+        //         : new Vector3(0, -correctionAmount, 0);
+        // }
+        // else if (MathF.Abs(minOverlap - overlapZ) < 1e-6f)
+        // {
+        //     correctionVector = overlapZ1 < overlapZ2
+        //         ? new Vector3(0, 0, correctionAmount)
+        //         : new Vector3(0, 0, -correctionAmount);
+        // }
+        //
+        // rigidBody.InternalPosition += correctionVector;
+        // rigidBodyTransform.Position = rigidBody.InternalPosition;
+        //
+        // //reflect velocity (for pushback)
+        // Vector3 normal = correctionVector.Normalized();
         // Vector3 velocity = rigidBody.DerivedVelocity;
         //
-        // for (int i = 0; i < 6; i++)
-        // {
-        //     Vector3 testDir = -Vector3.UnitY;
-        //     switch (i)
-        //     {
-        //         case 0:
-        //             testDir = Vector3.UnitX;
-        //             break;
-        //         case 1:
-        //             testDir = -Vector3.UnitX;
-        //             break;
-        //         case 2:
-        //             testDir = Vector3.UnitY;
-        //             break;
-        //         case 3:
-        //             testDir = -Vector3.UnitY;
-        //             break;
-        //         case 4:
-        //             testDir = Vector3.UnitZ;
-        //             break;
-        //         case 5:
-        //             testDir = -Vector3.UnitZ;
-        //             break;
-        //     }
-        //
-        //     RaycastHit? colliderHit = AabbRaycastTest(
-        //         rigidBody.InternalPosition,
-        //         testDir,
-        //         colliderAabb);
-        //
-        //     RaycastHit? selfHit = AabbRaycastTest(
-        //         rigidBody.InternalPosition,
-        //         testDir,
-        //         rigidBody.InternalAaBoundingBox,
-        //         true);
-        //     if (colliderHit == null || selfHit == null)
-        //     {
-        //         continue;
-        //     }
-        //
-        //     Vector3 inverseHitVector = -testDir;
-        //     float bounceBackOffset = Vector3.Distance(selfHit.Value.HitPoint, colliderHit.Value.HitPoint) + 0.00001f;
-        //
-        //     rigidBody.InternalPosition += inverseHitVector * bounceBackOffset;
-        //     rigidBodyTransform.Position = rigidBody.InternalPosition;
-        //
-        //     // if (rigidBody.InternalManualVelocityThisFrame)
-        //     // {
-        //     //     rigidBody.InternalPreviousPosition = rigidBody.InternalPosition;
-        //     //     rigidBody.InternalManualVelocityThisFrame = false;
-        //     // }
-        //     // else
-        //     {
-        //         float reflectedVelocity = Vector3.Dot(velocity, inverseHitVector);
-        //         Vector3 newVelocity =
-        //             velocity - (1f + rigidBody.RestitutionCoefficient) * reflectedVelocity * inverseHitVector;
-        //
-        //         rigidBody.InternalPreviousPosition = rigidBody.InternalPosition - newVelocity;
-        //     }
-        // }
+        // float velocityAlongNormal = Vector3.Dot(velocity, normal);
+        // Vector3 newVelocity = velocity - (1f + rigidBody.RestitutionCoefficient) * velocityAlongNormal * normal;
+        // rigidBody.InternalPreviousPosition = rigidBody.InternalPosition - newVelocity;
     }
 }
