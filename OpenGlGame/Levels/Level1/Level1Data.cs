@@ -1,21 +1,21 @@
 using System.Collections.Generic;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Components;
-using OpenGlGame.SceneSystem.PhysicsEngine;
-using OpenGlGame.SceneSystem.Prefabs;
+using OpenGlGame.SceneSystem.Prefabs.Misc;
+using OpenGlGame.SceneSystem.Prefabs.Delimiters;
 using OpenTK.Mathematics;
 
-namespace OpenGlGame.Chunks.Chunk01;
+namespace OpenGlGame.Levels.Level1;
 
-public class LevelChunk01 : SceneManager.WorldChunk
+public class Level1Data : ILevelData
 {
-    public LevelChunk01()
-        : base(new Aabb(new Vector3(-250f, -50f, -250f), new Vector3(500f, 100f, 500f)))
+    public GameObject[] LoadAndGetGameObjects()
     {
         List<GameObject> objects = [];
         AddMoveTraining(objects);
         AddJumpTraining(objects);
-        GameObjects = objects.ToArray();
+
+        return objects.ToArray();
     }
 
     private static void AddMoveTraining(List<GameObject> objects)
@@ -24,7 +24,7 @@ public class LevelChunk01 : SceneManager.WorldChunk
             new Cube01(
                 new Transform3D
                 {
-                    Position = new Vector3(1.5f, 2.0f, 15.0f)
+                    Position = new Vector3(1.5f, 1.0f, 15.0f)
                 }),
 
             //move training floor
@@ -48,7 +48,7 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(0f, 0.25f, -5.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(180f)),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(0f)),
                     Scale = new Vector3(8f, 1f, 4f)
                 }),
             new Wall01(
@@ -69,14 +69,14 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(6f, 0.25f, 25.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(20f, 1f, 4f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(10f, 0.25f, 17.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(180f)),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(180f)),
                     Scale = new Vector3(12f, 1f, 4f)
                 })
         ]);
@@ -85,13 +85,7 @@ public class LevelChunk01 : SceneManager.WorldChunk
     private static void AddJumpTraining(List<GameObject> objects)
     {
         objects.AddRange([
-            new Wall01(
-                new Transform3D
-                {
-                    Position = new Vector3(16f, 0.25f, 22.5f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
-                    Scale = new Vector3(5f, 1f, 4f)
-                }),
+            //TODO: try to replace these with Floor01 once we get dynamic lighting
 
             //steps
             new Wall01(
@@ -120,35 +114,35 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(20.5f, 0.25f, 18.5f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-180f), float.DegreesToRadians(90f), 0f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(90f), 0f),
                     Scale = new Vector3(3f, 1f, 3f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(20.5f, 0.75f, 20.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(3f, 1f, 1f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(20.5f, 1.25f, 20.5f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-180f), float.DegreesToRadians(90f), 0f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(90f), 0f),
                     Scale = new Vector3(1f, 1f, 3f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(20.5f, 1.75f, 21.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(3f, 1f, 1f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(19.0f, 2.25f, 23.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-180f), float.DegreesToRadians(90f), 0f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(90f), 0f),
                     Scale = new Vector3(4f, 1f, 6f)
                 }),
 
@@ -157,22 +151,29 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(17.5f, 2.25f, 20.5f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-180f), float.DegreesToRadians(90f), 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(0f), float.DegreesToRadians(90f), 0f),
                     Scale = new Vector3(1f, 1f, 3f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(19.0f, 1.75f, 20.5f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
                     Scale = new Vector3(1f, 1f, 1f)
                 }),
             new Wall01(
                 new Transform3D
                 {
                     Position = new Vector3(17.5f, 0.75f, 20.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(3f, 1f, 3f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(16f, 0.25f, 22.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(5f, 1f, 4f)
                 }),
 
             //walls
@@ -180,7 +181,7 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(19.0f, 4.25f, 17.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
                     Scale = new Vector3(6f, 1f, 10f)
                 }),
             new Wall01(
@@ -194,8 +195,81 @@ public class LevelChunk01 : SceneManager.WorldChunk
                 new Transform3D
                 {
                     Position = new Vector3(20.5f, 5.25f, 25.0f),
-                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(3f, 1f, 8f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(14.0f, 4.25f, 25.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(4f, 1f, 4f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(16.5f, 5.75f, 25.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 7f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(18.0f, 7.25f, 25.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(2f, 1f, 4f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(14.0f, 4.25f, 17.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Scale = new Vector3(4f, 1f, 4f)
+                }),
+
+            //roof
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(0.0f, 2.25f, 6.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), 0f, 0f),
+                    Scale = new Vector3(8f, 1f, 22f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(4.0f, 2.25f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), float.DegreesToRadians(90f), 0f),
+                    Scale = new Vector3(8f, 1f, 16f)
+                }),
+
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(12.0f, 4.25f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(8f, 1f, 4f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(14.0f, 6.25f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), float.DegreesToRadians(90f), 0f),
+                    Scale = new Vector3(8f, 1f, 4f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(16.0f, 7.75f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(8f, 1f, 3f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(19.0f, 9.25f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), float.DegreesToRadians(90f), 0f),
+                    Scale = new Vector3(8f, 1f, 6f)
                 })
         ]);
     }

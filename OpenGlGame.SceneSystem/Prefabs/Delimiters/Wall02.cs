@@ -5,7 +5,7 @@ using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Mathematics;
 
-namespace OpenGlGame.SceneSystem.Prefabs;
+namespace OpenGlGame.SceneSystem.Prefabs.Delimiters;
 
 public class Wall02 : GameObject
 {

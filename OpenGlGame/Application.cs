@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Timers;
-using OpenGlGame.Chunks.Chunk01;
+using OpenGlGame.Levels;
+using OpenGlGame.Levels.Level1;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
@@ -12,7 +12,6 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace OpenGlGame;
 
@@ -21,6 +20,13 @@ public class Application : IDisposable
     private readonly SceneManager _sceneManager = new();
     private GameWindow? _windowRef;
     private Timer? _physicsUpdateTimer;
+
+    private int _currentLevelIndex = -1;
+
+    private readonly ILevelData[] _levels =
+    [
+        new Level1Data()
+    ];
 
     //Wayland does not allow a window to control its own window mode...
     private bool _isWayland;
@@ -62,22 +68,23 @@ public class Application : IDisposable
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         GenerateRuntimeAssets();
-
-        List<SceneManager.WorldChunk> chunks =
-        [
-            new LevelChunk01(),
-            new(new Aabb(Vector3.Zero, Vector3.One)),
-            new(new Aabb(Vector3.Zero, Vector3.One)),
-            new(new Aabb(Vector3.Zero, Vector3.One)),
-            new(new Aabb(Vector3.Zero, Vector3.One))
-        ];
-        _sceneManager.SetLevel(chunks);
+        SetLevel(0);
 
         Player.Instance.EnterScene();
 
         _physicsUpdateTimer = new Timer(PhysicsSystem.PHYSICS_TICK_SECONDS * 1000.0);
         _physicsUpdateTimer.Elapsed += PhysicsUpdate;
         _physicsUpdateTimer.Start();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="levelIndex">Always level number minus one.</param>
+    internal void SetLevel(int levelIndex)
+    {
+        _sceneManager.SetLevel(_levels[levelIndex].LoadAndGetGameObjects());
+        _currentLevelIndex = levelIndex;
     }
 
     internal void Update(FrameEventArgs e, GameWindow window)
@@ -149,6 +156,12 @@ public class Application : IDisposable
             case Keys.F11:
                 _isFullscreenToggleRequested = true;
                 break;
+            //debug-only reload feature
+#if DEBUG
+            case Keys.F5:
+                SetLevel(_currentLevelIndex);
+                break;
+#endif
             case Keys.W:
             case Keys.Up:
             {

@@ -3,7 +3,7 @@ using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Components;
 using OpenTK.Graphics.OpenGL;
 
-namespace OpenGlGame.SceneSystem.Prefabs;
+namespace OpenGlGame.SceneSystem.Prefabs.Misc;
 
 public class ColoredTriangle : GameObject
 {

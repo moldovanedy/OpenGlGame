@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenGlGame.Data;
 using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
 using OpenTK.Mathematics;
@@ -48,12 +49,12 @@ public class PhysicsSystem
         return _staticColliders;
     }
 
-    public void RecreatePhysicsComponentsLists(List<SceneManager.WorldChunk> currentChunks)
+    public void RecreatePhysicsComponentsLists(GameObject[] currentGameObjects)
     {
         _rigidBodies.Clear();
         _staticColliders.Clear();
 
-        if (!Player.FREE_ROAM_CAMERA)
+        if (!DebuggingData.IS_CAMERA_FREE_ROAM)
         {
             var playerRigidBody = (RigidBody?)Player.Instance.GetComponent(nameof(RigidBody));
             if (playerRigidBody == null)
@@ -64,21 +65,18 @@ public class PhysicsSystem
             _rigidBodies.Add(playerRigidBody);
         }
 
-        foreach (SceneManager.WorldChunk currentChunk in currentChunks)
+        foreach (GameObject gameObject in currentGameObjects)
         {
-            foreach (GameObject gameObject in currentChunk.GameObjects)
+            var rigidBody = (RigidBody?)gameObject.GetComponent(nameof(RigidBody));
+            if (rigidBody != null)
             {
-                var rigidBody = (RigidBody?)gameObject.GetComponent(nameof(RigidBody));
-                if (rigidBody != null)
-                {
-                    _rigidBodies.Add(rigidBody);
-                }
+                _rigidBodies.Add(rigidBody);
+            }
 
-                var staticCollider = (StaticCollider?)gameObject.GetComponent(nameof(StaticCollider));
-                if (staticCollider != null)
-                {
-                    _staticColliders.Add(staticCollider);
-                }
+            var staticCollider = (StaticCollider?)gameObject.GetComponent(nameof(StaticCollider));
+            if (staticCollider != null)
+            {
+                _staticColliders.Add(staticCollider);
             }
         }
     }

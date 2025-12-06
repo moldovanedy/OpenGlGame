@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenGlGame.Data;
 using OpenGlGame.Rendering.Operations;
 using OpenTK.Graphics.OpenGL;
 using Matrix4 = OpenTK.Mathematics.Matrix4;
@@ -68,7 +69,11 @@ public class Renderer
 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         //TODO: this is a state, it needs to be either enabled or disabled at runtime depending on the object
-        // GL.Enable(EnableCap.CullFace);
+
+        if (!DebuggingData.IS_CAMERA_FREE_ROAM)
+        {
+            GL.Enable(EnableCap.CullFace);
+        }
 
         //keep 16:9 aspect ratio
         float actualAspectRatio = fbWidth / (float)fbHeight;

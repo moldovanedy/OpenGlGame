@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\OpenGlGame.Data\OpenGlGame.Data.csproj" />
         <ProjectReference Include="..\OpenGlGame.Rendering\OpenGlGame.Rendering.csproj" />
     </ItemGroup>
 

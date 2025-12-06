@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenGlGame.Data;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Mathematics;
@@ -18,8 +19,6 @@ public class Player : GameObject
     }
 
     private static Player? _instance;
-
-    public const bool FREE_ROAM_CAMERA = false;
 
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
@@ -44,7 +43,7 @@ public class Player : GameObject
 
         Camera = new Camera();
 
-        if (!FREE_ROAM_CAMERA)
+        if (!DebuggingData.IS_CAMERA_FREE_ROAM)
         {
             _rigidBody = new RigidBody
             {
@@ -58,7 +57,7 @@ public class Player : GameObject
 
     public void PhysicsUpdate()
     {
-        if (FREE_ROAM_CAMERA)
+        if (DebuggingData.IS_CAMERA_FREE_ROAM)
         {
             return;
         }
@@ -134,29 +133,31 @@ public class Player : GameObject
     {
         Camera.Update(deltaTime);
 
-        if (FREE_ROAM_CAMERA)
+        if (DebuggingData.IS_CAMERA_FREE_ROAM)
         {
+            float speed = _isJumpPressed ? 18f : 6f;
+
             Vector3 runningFrontVector = Camera.FrontVector;
             Vector3 runningRightVector = Camera.RightVector;
 
             if ((_currentMovingDirections & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
             {
-                _transform.Position += runningFrontVector * (float)deltaTime * 6f;
+                _transform.Position += runningFrontVector * (float)deltaTime * speed;
             }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Backward) != Camera.CameraMovement.None)
             {
-                _transform.Position += -runningFrontVector * (float)deltaTime * 6f;
+                _transform.Position += -runningFrontVector * (float)deltaTime * speed;
             }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Left) != Camera.CameraMovement.None)
             {
-                _transform.Position += -runningRightVector * (float)deltaTime * 6f;
+                _transform.Position += -runningRightVector * (float)deltaTime * speed;
             }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Right) != Camera.CameraMovement.None)
             {
-                _transform.Position += runningRightVector * (float)deltaTime * 6f;
+                _transform.Position += runningRightVector * (float)deltaTime * speed;
             }
         }
         else

@@ -5,17 +5,17 @@ using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Mathematics;
 
-namespace OpenGlGame.SceneSystem.Prefabs;
+namespace OpenGlGame.SceneSystem.Prefabs.Delimiters;
 
-public class Wall01 : GameObject
+public class Wall03 : GameObject
 {
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private MeshMaterial _material;
 
-    public Wall01(Transform3D transform)
+    public Wall03(Transform3D transform)
     {
         Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
-            "/assets/models/wall_01/tex_diffuse01.png",
+            "/assets/models/wall_03/tex_diffuse01.png",
             new Texture.TextureFormat());
         if (diffuseTex == null)
         {
@@ -29,12 +29,12 @@ public class Wall01 : GameObject
         AddComponent(transform);
         AddComponent(
             new StaticCollider(
-                new Aabb(new Vector3(-0.5f, -0.2f, -0.5f), new Vector3(1f, 0.2f, 1f))));
+                new Aabb(new Vector3(-0.5f, -0.01f, -0.5f), new Vector3(1f, 0.02f, 1f))));
 
         VertexBuffers? buffers =
-            ResourceManager.Instance.GetVertexBuffers("/assets/models/wall_01/wall_01.glb.vert01")
+            ResourceManager.Instance.GetVertexBuffers("/assets/models/wall_03/wall_03.glb.vert01")
             ?? ResourceManager.Instance.CreateVertexBuffersFromFile(
-                "/assets/models/wall_01/wall_01.glb.vert01",
+                "/assets/models/wall_03/wall_03.glb.vert01",
                 CommonVertexAttribDescriptors.DiffuseTextureMesh);
         if (buffers == null)
         {
