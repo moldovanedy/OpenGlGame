@@ -25,6 +25,8 @@ public class Player : GameObject
     private readonly RigidBody _rigidBody;
 
     private Camera.CameraMovement _currentMovingDirections;
+    private bool _isJumpPressed;
+
     private bool _isOnGround;
 
     public Camera Camera { get; private set; }
@@ -100,6 +102,11 @@ public class Player : GameObject
         _currentMovingDirections = currentState;
     }
 
+    public void InputJumpChanged(bool isPressingJump)
+    {
+        _isJumpPressed = isPressingJump;
+    }
+
     private static bool CheckIsOnGround(Aabb playerAabb, Aabb colliderAabb)
     {
         const float EPSILON = 0.01f;
@@ -116,6 +123,12 @@ public class Player : GameObject
 
         return horizontal && vertical;
     }
+
+    private float _hotTimeFrontSeconds;
+    private float _hotTimeBackSeconds;
+    private float _hotTimeLeftSeconds;
+    private float _hotTimeRightSeconds;
+    private const float MAX_HOT_TIME = 0.5f;
 
     private void OnUpdate(double deltaTime)
     {
@@ -151,37 +164,88 @@ public class Player : GameObject
             Vector3 runningFrontVector = new(Camera.FrontVector.X, 0f, Camera.FrontVector.Z);
             Vector3 runningRightVector = new(Camera.RightVector.X, 0f, Camera.RightVector.Z);
 
+            const float JUMP_FORCE = 6f;
 
             if (!_isOnGround)
             {
                 return;
             }
 
-
-            if (_currentMovingDirections == Camera.CameraMovement.None)
+            Vector3 finalVelocity = _rigidBody.DerivedVelocity;
+            if (_isJumpPressed)
             {
-                _rigidBody.SetDirectVelocity(Vector3.Zero);
+                finalVelocity += Camera.WorldUpVector * JUMP_FORCE;
             }
+
+            const float MOVE_FRONTAL_VELOCITY = 6f;
+            const float MOVE_LATERAL_VELOCITY = 3f;
 
             if ((_currentMovingDirections & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
             {
-                _rigidBody.SetDirectVelocity(runningFrontVector * 6f);
+                finalVelocity += runningFrontVector * ComputeVelocity(_hotTimeFrontSeconds, MOVE_FRONTAL_VELOCITY);
+                if (_hotTimeFrontSeconds <= MAX_HOT_TIME)
+                {
+                    _hotTimeFrontSeconds += (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
+                }
+            }
+            else if (_hotTimeFrontSeconds > 0f)
+            {
+                finalVelocity += runningFrontVector * ComputeVelocity(_hotTimeFrontSeconds, MOVE_FRONTAL_VELOCITY);
+                _hotTimeFrontSeconds -= (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
             }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Backward) != Camera.CameraMovement.None)
             {
-                _rigidBody.SetDirectVelocity(-runningFrontVector * 6f);
+                finalVelocity += -runningFrontVector * ComputeVelocity(_hotTimeBackSeconds, MOVE_FRONTAL_VELOCITY);
+                if (_hotTimeBackSeconds <= MAX_HOT_TIME)
+                {
+                    _hotTimeBackSeconds += (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
+                }
+            }
+            else if (_hotTimeBackSeconds > 0f)
+            {
+                finalVelocity += -runningFrontVector * ComputeVelocity(_hotTimeBackSeconds, MOVE_FRONTAL_VELOCITY);
+                _hotTimeBackSeconds -= (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
             }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Left) != Camera.CameraMovement.None)
             {
-                _rigidBody.SetDirectVelocity(-runningRightVector * 6f);
+                finalVelocity += -runningRightVector * ComputeVelocity(_hotTimeLeftSeconds, MOVE_LATERAL_VELOCITY);
+                if (_hotTimeLeftSeconds <= MAX_HOT_TIME)
+                {
+                    _hotTimeLeftSeconds += (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
+                }
+            }
+            else if (_hotTimeLeftSeconds > 0f)
+            {
+                finalVelocity += -runningRightVector * ComputeVelocity(_hotTimeLeftSeconds, MOVE_LATERAL_VELOCITY);
+                _hotTimeLeftSeconds -= (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
             }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Right) != Camera.CameraMovement.None)
             {
-                _rigidBody.SetDirectVelocity(runningRightVector * 6f);
+                finalVelocity += runningRightVector * ComputeVelocity(_hotTimeRightSeconds, MOVE_LATERAL_VELOCITY);
+                if (_hotTimeRightSeconds <= MAX_HOT_TIME)
+                {
+                    _hotTimeRightSeconds += (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
+                }
             }
+            else if (_hotTimeRightSeconds > 0f)
+            {
+                finalVelocity += runningRightVector * ComputeVelocity(_hotTimeRightSeconds, MOVE_LATERAL_VELOCITY);
+                _hotTimeRightSeconds -= (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
+            }
+
+            _rigidBody.SetDirectVelocity(finalVelocity);
         }
+    }
+
+
+    private static float ComputeVelocity(float hotTime, float maxSpeed)
+    {
+        hotTime /= MAX_HOT_TIME;
+        float sineInOutResult = -(MathF.Cos(MathF.PI * hotTime) - 1.0f) / 2.0f;
+
+        return sineInOutResult * maxSpeed;
     }
 }

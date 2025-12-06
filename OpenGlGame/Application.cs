@@ -101,13 +101,13 @@ public class Application : IDisposable
             _isFullscreenToggleRequested = false;
         }
 
-        if (e.Time > 0.2f || _isPaused)
+        if (_isPaused)
         {
             return;
         }
 
         //useful for debugging
-        _sceneManager.PhysicsUpdate();
+        // _sceneManager.PhysicsUpdate();
 
         _sceneManager.Update(
             new SceneManager.FrameParameters(
@@ -120,12 +120,12 @@ public class Application : IDisposable
 
     internal void PhysicsUpdate(object? sender, ElapsedEventArgs e)
     {
-        // if (_isPaused)
-        // {
-        //     return;
-        // }
-        //
-        // _sceneManager.PhysicsUpdate();
+        if (_isPaused)
+        {
+            return;
+        }
+
+        _sceneManager.PhysicsUpdate();
     }
 
     internal void FocusChanged(FocusedChangedEventArgs e)
@@ -177,6 +177,9 @@ public class Application : IDisposable
                 _pendingContradictoryMovements &= ~Camera.CameraMovement.Right;
                 break;
             }
+            case Keys.Space:
+                Player.Instance.InputJumpChanged(false);
+                break;
         }
 
         Player.Instance.InputMovementChanged(_playerDirection);
@@ -236,6 +239,9 @@ public class Application : IDisposable
                 _playerDirection |= Camera.CameraMovement.Right;
                 break;
             }
+            case Keys.Space:
+                Player.Instance.InputJumpChanged(true);
+                break;
         }
 
         Player.Instance.InputMovementChanged(_playerDirection);

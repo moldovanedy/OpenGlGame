@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
@@ -11,15 +12,20 @@ public class LevelChunk01 : SceneManager.WorldChunk
     public LevelChunk01()
         : base(new Aabb(new Vector3(-250f, -50f, -250f), new Vector3(500f, 100f, 500f)))
     {
-        GameObject[] objects =
-        [
+        List<GameObject> objects = [];
+        AddMoveTraining(objects);
+        AddJumpTraining(objects);
+        GameObjects = objects.ToArray();
+    }
+
+    private static void AddMoveTraining(List<GameObject> objects)
+    {
+        objects.AddRange([
             new Cube01(
                 new Transform3D
                 {
                     Position = new Vector3(1.5f, 2.0f, 15.0f)
                 }),
-
-            #region Move training
 
             //move training floor
             new Floor01(
@@ -72,12 +78,13 @@ public class LevelChunk01 : SceneManager.WorldChunk
                     Position = new Vector3(10f, 0.25f, 17.0f),
                     Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(180f)),
                     Scale = new Vector3(12f, 1f, 4f)
-                }),
+                })
+        ]);
+    }
 
-            #endregion
-
-            #region Jump training
-
+    private static void AddJumpTraining(List<GameObject> objects)
+    {
+        objects.AddRange([
             new Wall01(
                 new Transform3D
                 {
@@ -168,9 +175,28 @@ public class LevelChunk01 : SceneManager.WorldChunk
                     Scale = new Vector3(3f, 1f, 3f)
                 }),
 
-            #endregion
-        ];
-
-        GameObjects = objects;
+            //walls
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(19.0f, 4.25f, 17.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(6f, 1f, 10f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(22.0f, 4.25f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(8f, 1f, 10f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(20.5f, 5.25f, 25.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Scale = new Vector3(3f, 1f, 8f)
+                })
+        ]);
     }
 }

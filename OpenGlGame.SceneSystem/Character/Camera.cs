@@ -45,7 +45,14 @@ public class Camera
 
     internal void Update(double deltaTime)
     {
-        Position = ((Transform3D?)Player.Instance.GetComponent(nameof(Transform3D)))?.Position ?? Position;
+        Vector3? playerPos = ((Transform3D?)Player.Instance.GetComponent(nameof(Transform3D)))?.Position;
+        playerPos =
+            playerPos != null
+                //0.85 is half of the player's height, so we let 0.2 for the forehead, helmet, etc.
+                ? new Vector3(playerPos.Value.X, playerPos.Value.Y + 0.65f, playerPos.Value.Z)
+                : Position;
+
+        Position = playerPos.Value;
         UpdateCameraVectors();
     }
 
