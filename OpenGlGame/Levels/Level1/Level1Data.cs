@@ -149,7 +149,7 @@ public class Level1Data : ILevelData
                 }),
 
             //filler
-            new Wall01(
+            new Floor01(
                 new Transform3D
                 {
                     Position = new Vector3(17.5f, 2.25f, 20.5f),

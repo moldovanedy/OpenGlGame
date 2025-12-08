@@ -162,24 +162,19 @@ public class Player : GameObject
         }
         else
         {
-            Vector3 runningFrontVector = new(Camera.FrontVector.X, 0f, Camera.FrontVector.Z);
-            Vector3 runningRightVector = new(Camera.RightVector.X, 0f, Camera.RightVector.Z);
+            //normalize so the camera pitch is not considered
+            Vector3 runningFrontVector = new Vector3(Camera.FrontVector.X, 0f, Camera.FrontVector.Z).Normalized();
+            Vector3 runningRightVector = new Vector3(Camera.RightVector.X, 0f, Camera.RightVector.Z).Normalized();
 
             const float JUMP_FORCE = 6f;
-
-            if (!_isOnGround)
-            {
-                return;
-            }
-
-            Vector3 finalVelocity = _rigidBody.DerivedVelocity;
-            if (_isJumpPressed)
-            {
-                finalVelocity += Camera.WorldUpVector * JUMP_FORCE;
-            }
-
             const float MOVE_FRONTAL_VELOCITY = 6f;
             const float MOVE_LATERAL_VELOCITY = 3f;
+
+            Vector3 finalVelocity = _rigidBody.DerivedVelocity / (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
+            if (_isJumpPressed && _isOnGround)
+            {
+                finalVelocity += Camera.WorldUpVector * (JUMP_FORCE - finalVelocity.Y);
+            }
 
             if ((_currentMovingDirections & Camera.CameraMovement.Forward) != Camera.CameraMovement.None)
             {
@@ -237,7 +232,16 @@ public class Player : GameObject
                 _hotTimeRightSeconds -= (float)PhysicsSystem.PHYSICS_TICK_SECONDS;
             }
 
-            _rigidBody.SetDirectVelocity(finalVelocity);
+            if (_isOnGround)
+            {
+                finalVelocity -=
+                    finalVelocity * new Vector3(Math.Clamp(20.0f / finalVelocity.Length, 0f, 1.5f) * 0.05f);
+
+                finalVelocity.X = Math.Clamp(finalVelocity.X, -6f, 6f);
+                finalVelocity.Z = Math.Clamp(finalVelocity.Z, -6f, 6f);
+
+                _rigidBody.SetDirectVelocity(finalVelocity);
+            }
         }
     }
 
@@ -247,6 +251,6 @@ public class Player : GameObject
         hotTime /= MAX_HOT_TIME;
         float sineInOutResult = -(MathF.Cos(MathF.PI * hotTime) - 1.0f) / 2.0f;
 
-        return sineInOutResult * maxSpeed;
+        return sineInOutResult * maxSpeed * 0.1f;
     }
 }
