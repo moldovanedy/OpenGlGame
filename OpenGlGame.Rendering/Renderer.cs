@@ -3,12 +3,66 @@ using System.Collections.Generic;
 using OpenGlGame.Data;
 using OpenGlGame.Rendering.Operations;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using Matrix4 = OpenTK.Mathematics.Matrix4;
 
 namespace OpenGlGame.Rendering;
 
 public class Renderer
 {
+    public readonly struct RenderFrameData
+    {
+        public int FbWidth { get; }
+        public int FbHeight { get; }
+        public Vector3 CameraWorldPosition { get; }
+        public double DeltaTime { get; }
+
+        public RenderFrameData(int fbWidth, int fbHeight, Vector3 cameraWorldPosition, double deltaTime)
+        {
+            FbWidth = fbWidth;
+            FbHeight = fbHeight;
+            CameraWorldPosition = cameraWorldPosition;
+            DeltaTime = deltaTime;
+        }
+    }
+
+    public readonly struct PointLightData
+    {
+        public Vector3 Position { get; }
+        public Vector3 LightColor { get; } = new(1f);
+
+        public float AmbientIntensity { get; } = 0.07f;
+        public float DiffuseIntensity { get; } = 0.5f;
+        public float SpecularIntensity { get; } = 0.2f;
+
+        public float ConstantAttenuation { get; } = 1.0f;
+        public float LinearAttenuation { get; } = 1.0f;
+        public float QuadraticAttenuation { get; } = 1.0f;
+
+        public PointLightData(
+            Vector3 position,
+            Vector3 lightColor,
+            float ambientIntensity,
+            float diffuseIntensity,
+            float specularIntensity,
+            float constantAttenuation,
+            float linearAttenuation,
+            float quadraticAttenuation)
+        {
+            Position = position;
+            LightColor = lightColor;
+
+            AmbientIntensity = ambientIntensity;
+            DiffuseIntensity = diffuseIntensity;
+            SpecularIntensity = specularIntensity;
+
+            ConstantAttenuation = constantAttenuation;
+            LinearAttenuation = linearAttenuation;
+            QuadraticAttenuation = quadraticAttenuation;
+        }
+    }
+
+
     public const float ASPECT_RATIO = 16.0f / 9.0f;
 
     internal const int RENDER_PASS_OFFSET = 60;
@@ -49,13 +103,19 @@ public class Renderer
     private ulong _lastFrameModifiedStates = DEFAULT_MATERIAL_STATE_MASK | VERTEX_BUFFER_MASK;
 
     private Matrix4 _viewProjectionMatrix = Matrix4.Identity;
+    private PointLightData[] _pointLights = [];
 
     public void UpdateViewProjectionMatrix(Matrix4 viewProjectionMatrix)
     {
         _viewProjectionMatrix = viewProjectionMatrix;
     }
 
-    public void Render(int fbWidth, int fbHeight)
+    public void UpdatePointLights(PointLightData[] pointLights)
+    {
+        _pointLights = pointLights;
+    }
+
+    public void Render(ref RenderFrameData frameData)
     {
         _commands.Sort((OperationBase x, OperationBase y) =>
         {
@@ -76,20 +136,20 @@ public class Renderer
         }
 
         //keep 16:9 aspect ratio
-        float actualAspectRatio = fbWidth / (float)fbHeight;
+        float actualAspectRatio = frameData.FbWidth / (float)frameData.FbHeight;
 
         // ReSharper disable once ConvertIfStatementToSwitchStatement
         if (actualAspectRatio > ASPECT_RATIO)
         {
-            float newWidth = fbHeight * ASPECT_RATIO;
-            float offsetX = (fbWidth - newWidth) / 2.0f;
-            GL.Viewport((int)offsetX, 0, (int)newWidth, fbHeight);
+            float newWidth = frameData.FbHeight * ASPECT_RATIO;
+            float offsetX = (frameData.FbWidth - newWidth) / 2.0f;
+            GL.Viewport((int)offsetX, 0, (int)newWidth, frameData.FbHeight);
         }
         else if (actualAspectRatio < ASPECT_RATIO)
         {
-            float newHeight = fbWidth / ASPECT_RATIO;
-            float offsetY = (fbHeight - newHeight) / 2.0f;
-            GL.Viewport(0, (int)offsetY, fbWidth, (int)newHeight);
+            float newHeight = frameData.FbWidth / ASPECT_RATIO;
+            float offsetY = (frameData.FbHeight - newHeight) / 2.0f;
+            GL.Viewport(0, (int)offsetY, frameData.FbWidth, (int)newHeight);
         }
 
         ulong lastOrderKey = _lastFrameModifiedStates;
@@ -100,7 +160,7 @@ public class Renderer
             {
                 if (drawOp.OrderKey != lastOrderKey)
                 {
-                    ChangeState(drawOp.OrderKey, lastOrderKey, drawOp);
+                    ChangeState(drawOp.OrderKey, lastOrderKey, drawOp, ref frameData);
                     lastOrderKey = drawOp.OrderKey;
                 }
 
@@ -109,7 +169,7 @@ public class Renderer
             }
         }
 
-        GL.Viewport(0, 0, fbWidth, fbHeight);
+        GL.Viewport(0, 0, frameData.FbWidth, frameData.FbHeight);
         _commands.Clear();
     }
 
@@ -120,7 +180,8 @@ public class Renderer
     }
 
 
-    private void ChangeState(ulong thisOrderKey, ulong lastOrderKey, DrawOperation drawOp)
+    private void ChangeState(ulong thisOrderKey, ulong lastOrderKey, DrawOperation drawOp,
+        ref RenderFrameData frameData)
     {
         bool hasMultipleTextures = drawOp.MeshMaterialDep.Textures?.Length > 1;
 
@@ -130,8 +191,31 @@ public class Renderer
             {
                 GL.UseProgram(drawOp.MeshMaterialDep.UsedShader.GlId);
 
-                Matrix4 viewProjMatrix = _viewProjectionMatrix;
-                drawOp.MeshMaterialDep.UsedShader.SetUniformMat4("viewProjection", ref viewProjMatrix);
+                drawOp.MeshMaterialDep.SetProperty("viewProjection", _viewProjectionMatrix);
+                drawOp.MeshMaterialDep.SetProperty("viewPos", frameData.CameraWorldPosition);
+
+                drawOp.MeshMaterialDep.SetProperty("lightCount", _pointLights.Length);
+                for (int i = 0; i < _pointLights.Length; i++)
+                {
+                    Vector3 diffuseColor = _pointLights[i].LightColor * _pointLights[i].DiffuseIntensity;
+                    Vector3 ambientColor = diffuseColor * _pointLights[i].AmbientIntensity;
+                    Vector3 specularColor = _pointLights[i].LightColor * _pointLights[i].SpecularIntensity;
+
+                    drawOp.MeshMaterialDep.SetProperty($"lights[{i}].ambient", ambientColor);
+                    drawOp.MeshMaterialDep.SetProperty($"lights[{i}].diffuse", diffuseColor);
+                    drawOp.MeshMaterialDep.SetProperty($"lights[{i}].specular", specularColor);
+                    drawOp.MeshMaterialDep.SetProperty($"lights[{i}].worldPos", _pointLights[i].Position);
+
+                    drawOp.MeshMaterialDep.SetProperty(
+                        $"lights[{i}].constantAttenuation",
+                        _pointLights[i].ConstantAttenuation);
+                    drawOp.MeshMaterialDep.SetProperty(
+                        $"lights[{i}].linearAttenuation",
+                        _pointLights[i].LinearAttenuation);
+                    drawOp.MeshMaterialDep.SetProperty(
+                        $"lights[{i}].quadraticAttenuation",
+                        _pointLights[i].QuadraticAttenuation);
+                }
             }
 
             //if the texture changed, but it changed so it actually has at least a texture OR it has multiple textures,

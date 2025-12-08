@@ -9,12 +9,12 @@ namespace OpenGlGame.SceneSystem.Prefabs.Misc;
 
 public class Cube01 : GameObject
 {
-    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private MeshMaterial _material;
+    private readonly MeshMaterial _material;
 
     public Cube01(Transform3D transform)
     {
-        _material = CommonMaterials.CreateDiffuseUnlitMaterial();
+        UpdateEvent += OnUpdate;
+        _material = CommonMaterials.CreateDiffuseLitMaterial();
 
         AddComponent(transform);
         AddComponent(new RigidBody
@@ -41,5 +41,13 @@ public class Cube01 : GameObject
                 VertBuffers = buffers,
                 Material = _material
             });
+    }
+
+    private void OnUpdate(double deltaTime)
+    {
+        //actual material properties
+        _material.SetProperty("material.diffuseTex", 0);
+        _material.SetProperty("material.specularCol", new Vector3(0.1f));
+        _material.SetProperty("material.shininess", 8.0f);
     }
 }

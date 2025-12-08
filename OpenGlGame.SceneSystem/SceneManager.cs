@@ -1,13 +1,13 @@
+using System.Collections.Generic;
 using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem.Character;
+using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 
 namespace OpenGlGame.SceneSystem;
 
 public class SceneManager
 {
-    public record FrameParameters(int FramebufferWidth, int FramebufferHeight, double DeltaTime);
-
     private GameObject[] _currentGameObjects = [];
     private readonly Renderer _systemRenderer = new();
 
@@ -26,25 +26,36 @@ public class SceneManager
             gameObject.SystemRenderer = _systemRenderer;
         }
 
+        List<Renderer.PointLightData> pointLightsData = [];
+        foreach (GameObject gameObject in gameObjects)
+        {
+            IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
+            if (pointLight is PointLight light)
+            {
+                pointLightsData.Add(light.LightData);
+            }
+        }
+
+        _systemRenderer.UpdatePointLights(pointLightsData.ToArray());
         PhysicsSystem.Instance.RecreatePhysicsComponentsLists(gameObjects);
     }
 
-    public void Update(FrameParameters frameParams)
+    public void Update(ref Renderer.RenderFrameData frameData)
     {
         if (_currentGameObjects.Length == 0)
         {
             return;
         }
 
-        Player.Instance.Update(frameParams.DeltaTime);
+        Player.Instance.Update(frameData.DeltaTime);
         _systemRenderer.UpdateViewProjectionMatrix(Player.Instance.Camera.GetViewProjectionMatrix());
 
         foreach (GameObject gameObject in _currentGameObjects)
         {
-            gameObject.Update(frameParams.DeltaTime);
+            gameObject.Update(frameData.DeltaTime);
         }
 
-        _systemRenderer.Render(frameParams.FramebufferWidth, frameParams.FramebufferHeight);
+        _systemRenderer.Render(ref frameData);
     }
 
     public void PhysicsUpdate()

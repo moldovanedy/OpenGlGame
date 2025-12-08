@@ -116,11 +116,12 @@ public class Application : IDisposable
         //useful for debugging
         // _sceneManager.PhysicsUpdate();
 
-        _sceneManager.Update(
-            new SceneManager.FrameParameters(
-                window.FramebufferSize.X,
-                window.FramebufferSize.Y,
-                e.Time));
+        Renderer.RenderFrameData frameData = new(
+            window.FramebufferSize.X,
+            window.FramebufferSize.Y,
+            Player.Instance.Camera.Position,
+            e.Time);
+        _sceneManager.Update(ref frameData);
 
         window.SwapBuffers();
     }

@@ -9,11 +9,11 @@ namespace OpenGlGame.SceneSystem.Prefabs.Delimiters;
 
 public class Wall01 : GameObject
 {
-    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private MeshMaterial _material;
+    private readonly MeshMaterial _material;
 
     public Wall01(Transform3D transform)
     {
+        UpdateEvent += OnUpdate;
         Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
             "/assets/models/wall_01/tex_diffuse01.png",
             new Texture.TextureFormat());
@@ -22,7 +22,7 @@ public class Wall01 : GameObject
             throw new NullReferenceException("Wall texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseTiledUnlitMaterial(diffuseTex);
+        _material = CommonMaterials.CreateDiffuseTiledLitMaterial(diffuseTex);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 
@@ -47,5 +47,13 @@ public class Wall01 : GameObject
                 VertBuffers = buffers,
                 Material = _material
             });
+    }
+
+    private void OnUpdate(double deltaTime)
+    {
+        //actual material properties
+        _material.SetProperty("material.diffuseTex", 0);
+        _material.SetProperty("material.specularCol", new Vector3(0.5f));
+        _material.SetProperty("material.shininess", 64.0f);
     }
 }
