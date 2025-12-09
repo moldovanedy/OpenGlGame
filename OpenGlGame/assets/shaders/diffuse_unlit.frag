@@ -1,6 +1,5 @@
 #version 330 core
 
-in vec3 worldSpaceNormal;
 in vec2 textureCoords;
 
 out vec4 fragColor;

@@ -11,7 +11,7 @@ public class Wall01 : GameObject
 {
     private readonly MeshMaterial _material;
 
-    public Wall01(Transform3D transform)
+    public Wall01(Transform3D transform, bool hasAlpha = false, bool hasBackfaceCulling = true)
     {
         UpdateEvent += OnUpdate;
         Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
@@ -22,7 +22,7 @@ public class Wall01 : GameObject
             throw new NullReferenceException("Wall texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseTiledLitMaterial(diffuseTex);
+        _material = CommonMaterials.CreateDiffuseTiledLitMaterial(diffuseTex, hasAlpha, hasBackfaceCulling);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 

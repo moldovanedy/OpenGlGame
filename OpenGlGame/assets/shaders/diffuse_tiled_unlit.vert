@@ -13,7 +13,7 @@ uniform mat4 transposedInverseModel;
 
 void main()
 {
-    worldSpaceNormal = mat3(transposedInverseModel) * aNormal;
+    worldSpaceNormal = aNormal * mat3(transposedInverseModel);
     textureCoords = aTexCoords;
 
     gl_Position = vec4(aPos, 1.0) * model * viewProjection;

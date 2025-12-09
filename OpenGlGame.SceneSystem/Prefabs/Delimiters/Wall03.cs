@@ -12,7 +12,7 @@ public class Wall03 : GameObject
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private MeshMaterial _material;
 
-    public Wall03(Transform3D transform)
+    public Wall03(Transform3D transform, bool hasAlpha = false, bool hasBackfaceCulling = true)
     {
         Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
             "/assets/models/wall_03/tex_diffuse01.png",
@@ -22,7 +22,7 @@ public class Wall03 : GameObject
             throw new NullReferenceException("Wall texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseTiledUnlitMaterial(diffuseTex);
+        _material = CommonMaterials.CreateDiffuseTiledUnlitMaterial(diffuseTex, hasAlpha, hasBackfaceCulling);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 

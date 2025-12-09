@@ -20,7 +20,7 @@ public class Cube01 : GameObject
         AddComponent(new RigidBody
         {
             Mass = 12.0f,
-            BoundingBox = new Aabb(new Vector3(-1f, -1f, -1f), new Vector3(2f, 2f, 2f)),
+            BoundingBox = new Aabb(new Vector3(-0.555f, -0.555f, -0.555f), new Vector3(1.11f, 1.11f, 1.11f)),
             RestitutionCoefficient = 0.3f
         });
 

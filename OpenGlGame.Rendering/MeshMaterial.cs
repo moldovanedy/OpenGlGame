@@ -6,8 +6,8 @@ namespace OpenGlGame.Rendering;
 
 public class MeshMaterial
 {
-    internal const int BLENDING_OFFSET = 48;
-    internal const ulong BLENDING_MASK = 0x0fUL << 48;
+    internal const int RENDER_STATE_OFFSET = 48;
+    internal const ulong RENDER_STATE_MASK = 0x0fUL << 48;
 
     internal const int SHADER_PROGRAM_OFFSET = 36;
     internal const ulong SHADER_PROGRAM_MASK = 0x0fffUL << 36;
@@ -28,18 +28,22 @@ public class MeshMaterial
 
     public bool HasAlphaBlending { get; private set; }
 
+    public bool HasBackfaceCulling { get; private set; }
+
     private readonly Dictionary<string, object> _properties = [];
 
     public MeshMaterial(
         Shader shader,
         VertexAttribDescriptors vertexAttributes,
         Texture[]? textures = null,
-        bool hasAlphaBlending = false)
+        bool hasAlphaBlending = false,
+        bool hasBackfaceCulling = true)
     {
         UsedShader = shader;
         VertexAttributes = vertexAttributes;
         Textures = textures;
         HasAlphaBlending = hasAlphaBlending;
+        HasBackfaceCulling = hasBackfaceCulling;
 
         OrderKey = ComputeOrderKey();
     }
@@ -132,7 +136,8 @@ public class MeshMaterial
         }
 
         return
-            ((HasAlphaBlending ? 1UL : 0UL) << BLENDING_OFFSET)
+            ((HasAlphaBlending ? 1UL : 0UL) << (RENDER_STATE_OFFSET + 1))
+            | ((HasBackfaceCulling ? 1UL : 0UL) << RENDER_STATE_OFFSET)
             | ((ulong)UsedShader.ResourceId << SHADER_PROGRAM_OFFSET)
             | ((ulong)textureHash << TEXTURE_ATTACHMENTS_HASH_OFFSET)
             | (VertexAttributes.ResourceId << VERTEX_ATTRIBUTE_FORMAT_OFFSET);

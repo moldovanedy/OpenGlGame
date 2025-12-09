@@ -74,8 +74,8 @@ public class Renderer
     // internal const int SHADER_PROGRAM_OFFSET = 44;
     // internal const ulong SHADER_PROGRAM_MASK = 0x0fffUL << 44;
     //
-    // internal const int BLENDING_OFFSET = 40;
-    // internal const ulong BLENDING_MASK = 0x0fUL << 40;
+    // internal const int RENDER_STATE_OFFSET = 40;
+    // internal const ulong RENDER_STATE_MASK = 0x0fUL << 40;
     //
     // internal const int TEXTURE_ATTACHMENT_OFFSET = 32;
     // internal const ulong TEXTURE_ATTACHMENT_MASK = 0xffUL << 32;
@@ -93,7 +93,7 @@ public class Renderer
     internal const ulong VERTEX_BUFFER_MASK = 0x0fffUL;
 
     internal const ulong DEFAULT_MATERIAL_STATE_MASK =
-        MeshMaterial.BLENDING_MASK
+        MeshMaterial.RENDER_STATE_MASK
         | MeshMaterial.SHADER_PROGRAM_MASK
         | MeshMaterial.VERTEX_ATTRIBUTE_FORMAT_MASK;
 
@@ -128,12 +128,6 @@ public class Renderer
         });
 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        //TODO: this is a state, it needs to be either enabled or disabled at runtime depending on the object
-
-        if (!DebuggingData.IS_CAMERA_FREE_ROAM)
-        {
-            GL.Enable(EnableCap.CullFace);
-        }
 
         //keep 16:9 aspect ratio
         float actualAspectRatio = frameData.FbWidth / (float)frameData.FbHeight;
@@ -187,6 +181,23 @@ public class Renderer
 
         if ((thisOrderKey & MATERIAL_MASK) != (lastOrderKey & MATERIAL_MASK) || hasMultipleTextures)
         {
+            if ((thisOrderKey & MeshMaterial.RENDER_STATE_MASK) != (lastOrderKey & MeshMaterial.RENDER_STATE_MASK))
+            {
+                byte data = (byte)(thisOrderKey >> MeshMaterial.RENDER_STATE_OFFSET);
+                //backface culling
+                if (!DebuggingData.IS_CAMERA_FREE_ROAM)
+                {
+                    if ((data & 0b1) != 0)
+                    {
+                        GL.Enable(EnableCap.CullFace);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.CullFace);
+                    }
+                }
+            }
+
             if ((thisOrderKey & MeshMaterial.SHADER_PROGRAM_MASK) != (lastOrderKey & MeshMaterial.SHADER_PROGRAM_MASK))
             {
                 GL.UseProgram(drawOp.MeshMaterialDep.UsedShader.GlId);

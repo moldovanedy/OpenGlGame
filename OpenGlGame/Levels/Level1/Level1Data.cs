@@ -18,6 +18,9 @@ public class Level1Data : ILevelData
         AddJumpTraining(objects);
         AddLights(objects);
 
+        GameObject[] transitionRoom = new TransitionRoom().LoadAndGetGameObjects();
+        TransitionRoom.OffsetObjects(transitionRoom, new Vector3(18.0f, 4.25f, 27.101f));
+        objects.AddRange(transitionRoom);
         return objects.ToArray();
     }
 
@@ -228,6 +231,40 @@ public class Level1Data : ILevelData
                     Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(180f), 0f),
                     Scale = new Vector3(4f, 1f, 4f)
                 }),
+
+            //transition seams
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(17.0f, 3.75f, 25.05f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(0.1f, 1f, 3f)
+                },
+                hasBackfaceCulling: false),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(19.0f, 3.75f, 25.05f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.1f, 1f, 3f)
+                },
+                hasBackfaceCulling: false),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(18.0f, 5.25f, 25.05f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), float.DegreesToRadians(90f), 0f),
+                    Scale = new Vector3(0.1f, 1f, 2f)
+                },
+                hasBackfaceCulling: false),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(18.0f, 2.25f, 25.05f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(-90f), 0f),
+                    Scale = new Vector3(0.1f, 1f, 2f)
+                },
+                hasBackfaceCulling: false),
 
             //roof
             new Wall01(

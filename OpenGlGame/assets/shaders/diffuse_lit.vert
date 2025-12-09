@@ -17,7 +17,7 @@ uniform mat4 transposedInverseModel;
 
 void main()
 {
-    outLightingData.worldSpaceNormal = mat3(transposedInverseModel) * aNormal;
+    outLightingData.worldSpaceNormal = aNormal * mat3(transposedInverseModel);
     textureCoords = aTexCoords;
     outLightingData.fragPos = vec3(vec4(aPos, 1.0) * model);
 
