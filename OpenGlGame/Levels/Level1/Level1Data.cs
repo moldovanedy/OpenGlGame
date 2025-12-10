@@ -18,7 +18,7 @@ public class Level1Data : ILevelData
         AddJumpTraining(objects);
         AddLights(objects);
 
-        GameObject[] transitionRoom = new TransitionRoom().LoadAndGetGameObjects();
+        GameObject[] transitionRoom = new TransitionRoom(true).LoadAndGetGameObjects();
         TransitionRoom.OffsetObjects(transitionRoom, new Vector3(18.0f, 4.25f, 27.101f));
         objects.AddRange(transitionRoom);
         return objects.ToArray();

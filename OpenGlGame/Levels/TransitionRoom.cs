@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem;
+using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.Prefabs.Delimiters;
 using OpenGlGame.SceneSystem.Prefabs.Interactables;
@@ -11,12 +13,42 @@ namespace OpenGlGame.Levels;
 
 public class TransitionRoom : ILevelData
 {
+    public static Vector3 InRoomSpawnPosition { get; } = new(0f, 0f, -4.101f);
+
+    private Door01? _movingLeftDoor;
+    private Door01? _movingRightDoor;
+
+    private readonly bool _isOutRoom;
+    private readonly TransitionRoomCallbacks _callbackManager = new();
+
+    public TransitionRoom(bool isOutRoom)
+    {
+        _isOutRoom = isOutRoom;
+    }
+
     public GameObject[] LoadAndGetGameObjects()
     {
         List<GameObject> objects = [];
         AddSolidObjects(objects);
         AddButtonStand(objects);
         AddLights(objects);
+
+        objects[0].UpdateEvent += deltaTime => { _callbackManager.Update(deltaTime); };
+        if (!_isOutRoom)
+        {
+            Task.Run(async () =>
+            {
+                await Task.Delay(300);
+                if (_movingLeftDoor != null && _movingRightDoor != null)
+                {
+                    MainThreadDispatcher.Enqueue(() =>
+                    {
+                        _callbackManager.OpenDoors(_movingLeftDoor, _movingRightDoor);
+                    });
+                }
+            });
+        }
+
         return objects.ToArray();
     }
 
@@ -45,7 +77,7 @@ public class TransitionRoom : ILevelData
         }
     }
 
-    private static void AddSolidObjects(List<GameObject> objects)
+    private void AddSolidObjects(List<GameObject> objects)
     {
         objects.AddRange([
             new Floor01(
@@ -121,42 +153,57 @@ public class TransitionRoom : ILevelData
                     Position = new Vector3(0.0f, 1.5f, -2.0f),
                     Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(180f), 0f),
                     Scale = new Vector3(2f, 1f, 1f)
-                }),
-
-            //doors
-            new Door01(
-                new Transform3D
-                {
-                    Position = new Vector3(1.499f, -0.499f, -1.924f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(-90f), 0f),
-                    Scale = new Vector3(2.998f, 0.15f, 1f)
-                }),
-            new Door01(
-                new Transform3D
-                {
-                    Position = new Vector3(-1.499f, -0.499f, -1.924f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(90f), 0f),
-                    Scale = new Vector3(2.998f, 0.15f, 1f)
-                }),
-
-            new Door01(
-                new Transform3D
-                {
-                    Position = new Vector3(0.499f, -0.499f, 1.926f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(-90f), 0f),
-                    Scale = new Vector3(2.998f, 0.15f, 1f)
-                }),
-            new Door01(
-                new Transform3D
-                {
-                    Position = new Vector3(-0.499f, -0.499f, 1.926f),
-                    Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(90f), 0f),
-                    Scale = new Vector3(2.998f, 0.15f, 1f)
                 })
         ]);
+
+        float inDoorsX = _isOutRoom ? TransitionRoomCallbacks.OPEN_DOOR_X : TransitionRoomCallbacks.CLOSED_DOOR_X;
+
+        //doors
+        Door01 inLeftDoor = new(
+            new Transform3D
+            {
+                Position = new Vector3(inDoorsX, -0.499f, -1.924f),
+                Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(-90f), 0f),
+                Scale = new Vector3(2.998f, 0.15f, 1f)
+            });
+        Door01 inRightDoor = new(
+            new Transform3D
+            {
+                Position = new Vector3(-inDoorsX, -0.499f, -1.924f),
+                Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(90f), 0f),
+                Scale = new Vector3(2.998f, 0.15f, 1f)
+            });
+
+        Door01 outLeftDoor = new(
+            new Transform3D
+            {
+                Position = new Vector3(TransitionRoomCallbacks.CLOSED_DOOR_X, -0.499f, 1.926f),
+                Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(-90f), 0f),
+                Scale = new Vector3(2.998f, 0.15f, 1f)
+            });
+        Door01 outRightDoor = new(
+            new Transform3D
+            {
+                Position = new Vector3(-TransitionRoomCallbacks.CLOSED_DOOR_X, -0.499f, 1.926f),
+                Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(90f), 0f),
+                Scale = new Vector3(2.998f, 0.15f, 1f)
+            });
+
+        if (_isOutRoom)
+        {
+            _movingLeftDoor = inLeftDoor;
+            _movingRightDoor = inRightDoor;
+        }
+        else
+        {
+            _movingLeftDoor = outLeftDoor;
+            _movingRightDoor = outRightDoor;
+        }
+
+        objects.AddRange([inLeftDoor, inRightDoor, outLeftDoor, outRightDoor]);
     }
 
-    private static void AddButtonStand(List<GameObject> objects)
+    private void AddButtonStand(List<GameObject> objects)
     {
         objects.AddRange([
             new BtnStand01(
@@ -172,7 +219,22 @@ public class TransitionRoom : ILevelData
                     Position = new Vector3(1.74f, -0.775f, 0f),
                     Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(35f)),
                     Scale = new Vector3(1f, 1f, 1f)
-                })
+                },
+                !_isOutRoom)
+            {
+                PressedCallback = () =>
+                {
+                    if (_movingRightDoor != null && _movingLeftDoor != null)
+                    {
+                        _callbackManager.CloseDoors(_movingLeftDoor, _movingRightDoor);
+                        Task.Run(async () =>
+                        {
+                            await Task.Delay(700);
+                            MainThreadDispatcher.Enqueue(() => { Player.Instance.RequestLoadingNextLevel(); });
+                        });
+                    }
+                }
+            }
         ]);
     }
 

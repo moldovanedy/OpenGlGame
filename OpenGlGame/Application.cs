@@ -25,7 +25,8 @@ public class Application : IDisposable
 
     private readonly ILevelData[] _levels =
     [
-        new Level1Data()
+        new Level1Data(),
+        new Level2Data()
     ];
 
     //Wayland does not allow a window to control its own window mode...
@@ -71,6 +72,7 @@ public class Application : IDisposable
         SetLevel(0);
 
         Player.Instance.EnterScene();
+        Player.Instance.NextLevelRequestedEvent += () => { SetLevel(++_currentLevelIndex); };
 
         _physicsUpdateTimer = new Timer(PhysicsSystem.PHYSICS_TICK_SECONDS * 1000.0);
         _physicsUpdateTimer.Elapsed += PhysicsUpdate;
@@ -282,6 +284,22 @@ public class Application : IDisposable
         _lastY = e.Y;
 
         Player.Instance.Camera.InputLookDirectionChanged(xOffset, yOffset);
+    }
+
+    internal static void OnMouseDown(MouseButtonEventArgs e)
+    {
+        if (e.Button == MouseButton.Left)
+        {
+            Player.Instance.InputInteractButtonChanged(true);
+        }
+    }
+
+    internal static void OnMouseUp(MouseButtonEventArgs e)
+    {
+        if (e.Button == MouseButton.Left)
+        {
+            Player.Instance.InputInteractButtonChanged(false);
+        }
     }
 
     #endregion

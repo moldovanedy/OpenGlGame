@@ -38,6 +38,7 @@ public class SceneManager
 
         _systemRenderer.UpdatePointLights(pointLightsData.ToArray());
         PhysicsSystem.Instance.RecreatePhysicsComponentsLists(gameObjects);
+        PhysicsSystem.Instance.RecreateInteractablesList(gameObjects);
     }
 
     public void Update(ref Renderer.RenderFrameData frameData)
@@ -47,6 +48,7 @@ public class SceneManager
             return;
         }
 
+        MainThreadDispatcher.ExecutePending();
         Player.Instance.Update(frameData.DeltaTime);
         _systemRenderer.UpdateViewProjectionMatrix(Player.Instance.Camera.GetViewProjectionMatrix());
 

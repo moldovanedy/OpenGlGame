@@ -34,6 +34,7 @@ public class PhysicsSystem
 
     private readonly List<RigidBody> _rigidBodies = [];
     private readonly List<StaticCollider> _staticColliders = [];
+    private readonly List<Interactable> _interactables = [];
 
     private PhysicsSystem()
     {
@@ -47,6 +48,11 @@ public class PhysicsSystem
     public List<StaticCollider> GetCurrentStaticColliders()
     {
         return _staticColliders;
+    }
+
+    public List<Interactable> GetCurrentInteractables()
+    {
+        return _interactables;
     }
 
     public void RecreatePhysicsComponentsLists(GameObject[] currentGameObjects)
@@ -77,6 +83,20 @@ public class PhysicsSystem
             if (staticCollider != null)
             {
                 _staticColliders.Add(staticCollider);
+            }
+        }
+    }
+
+    public void RecreateInteractablesList(GameObject[] currentGameObjects)
+    {
+        _interactables.Clear();
+
+        foreach (GameObject gameObject in currentGameObjects)
+        {
+            var interactable = (Interactable?)gameObject.GetComponent(nameof(Interactable));
+            if (interactable != null)
+            {
+                _interactables.Add(interactable);
             }
         }
     }

@@ -20,15 +20,19 @@ public class Player : GameObject
 
     private static Player? _instance;
 
+    public static Vector3 SpawnPosition { get; } = new(0f, -1.12f, -4.101f);
+
+    public Camera Camera { get; private set; }
+    public event Action? NextLevelRequestedEvent;
+
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
 
     private Camera.CameraMovement _currentMovingDirections;
     private bool _isJumpPressed;
+    private bool _isInteractButtonPressed;
 
     private bool _isOnGround;
-
-    public Camera Camera { get; private set; }
 
     private Player()
     {
@@ -39,6 +43,7 @@ public class Player : GameObject
         //spawn position for debugging
         // _transform.Position = new Vector3(20.5f, 3.5f, 20.5f);
 
+        _transform.Position = new Vector3(SpawnPosition.X, SpawnPosition.Y + 0.5f, SpawnPosition.Z);
         AddComponent(_transform);
 
         Camera = new Camera();
@@ -63,39 +68,7 @@ public class Player : GameObject
         }
 
         MovePlayer();
-
-        _isOnGround = false;
-        List<StaticCollider> staticColliders = PhysicsSystem.Instance.GetCurrentStaticColliders();
-        foreach (StaticCollider collider in staticColliders)
-        {
-            var colliderTransform = (Transform3D?)collider.Owner?.GetComponent(nameof(Transform3D));
-            if (colliderTransform == null)
-            {
-                throw new Exception("StaticCollider did not have a Transform3D component");
-            }
-
-            Aabb colliderAabb = new(collider.BoundingBox, colliderTransform.GetModelMatrix());
-            if (CheckIsOnGround(_rigidBody.InternalAaBoundingBox, colliderAabb))
-            {
-                _isOnGround = true;
-                return;
-            }
-        }
-
-        List<RigidBody> rigidBodies = PhysicsSystem.Instance.GetCurrentRigidBodies();
-        foreach (RigidBody otherRigidBody in rigidBodies)
-        {
-            if (otherRigidBody == _rigidBody)
-            {
-                continue;
-            }
-
-            if (CheckIsOnGround(_rigidBody.InternalAaBoundingBox, otherRigidBody.InternalAaBoundingBox))
-            {
-                _isOnGround = true;
-                return;
-            }
-        }
+        _isOnGround = CheckIsOnGround();
     }
 
     public void InputMovementChanged(Camera.CameraMovement currentState)
@@ -107,6 +80,21 @@ public class Player : GameObject
     {
         _isJumpPressed = isPressingJump;
     }
+
+    public void InputInteractButtonChanged(bool isPressingInteractButton)
+    {
+        _isInteractButtonPressed = isPressingInteractButton;
+    }
+
+    public void RequestLoadingNextLevel()
+    {
+        NextLevelRequestedEvent?.Invoke();
+        _transform.Position = SpawnPosition;
+
+        _rigidBody.InternalPosition = _transform.Position;
+        _rigidBody.InternalPreviousPosition = _transform.Position;
+    }
+
 
     private static bool CheckIsOnGround(Aabb playerAabb, Aabb colliderAabb)
     {
@@ -134,6 +122,12 @@ public class Player : GameObject
     private void OnUpdate(double deltaTime)
     {
         Camera.Update(deltaTime);
+
+        CheckInteractableHit(out Interactable? objectInRange);
+        if (objectInRange?.Owner?.GetComponent(nameof(MeshRenderer)) is MeshRenderer renderer)
+        {
+            renderer.ShouldDrawOutline = true;
+        }
 
         if (!DebuggingData.IS_CAMERA_FREE_ROAM)
         {
@@ -247,6 +241,73 @@ public class Player : GameObject
             finalVelocity.Z = Math.Clamp(finalVelocity.Z, -6f, 6f);
 
             _rigidBody.SetDirectVelocity(finalVelocity);
+        }
+    }
+
+    private bool CheckIsOnGround()
+    {
+        List<StaticCollider> staticColliders = PhysicsSystem.Instance.GetCurrentStaticColliders();
+        foreach (StaticCollider collider in staticColliders)
+        {
+            var colliderTransform = (Transform3D?)collider.Owner?.GetComponent(nameof(Transform3D));
+            if (colliderTransform == null)
+            {
+                throw new Exception("StaticCollider did not have a Transform3D component");
+            }
+
+            Aabb colliderAabb = new(collider.BoundingBox, colliderTransform.GetModelMatrix());
+            if (CheckIsOnGround(_rigidBody.InternalAaBoundingBox, colliderAabb))
+            {
+                return true;
+            }
+        }
+
+        List<RigidBody> rigidBodies = PhysicsSystem.Instance.GetCurrentRigidBodies();
+        foreach (RigidBody otherRigidBody in rigidBodies)
+        {
+            if (otherRigidBody == _rigidBody)
+            {
+                continue;
+            }
+
+            if (CheckIsOnGround(_rigidBody.InternalAaBoundingBox, otherRigidBody.InternalAaBoundingBox))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CheckInteractableHit(out Interactable? objectInRange)
+    {
+        objectInRange = null;
+
+        List<Interactable> interactables = PhysicsSystem.Instance.GetCurrentInteractables();
+        foreach (Interactable interactable in interactables)
+        {
+            var interactableTransform = (Transform3D?)interactable.Owner?.GetComponent(nameof(Transform3D));
+            if (interactableTransform == null)
+            {
+                throw new Exception("Interactable did not have a Transform3D component");
+            }
+
+            Aabb colliderAabb = new(interactable.BoundingBox, interactableTransform.GetModelMatrix());
+            PhysicsSystem.RaycastHit? hit = PhysicsSystem.AabbRaycastTest(
+                Camera.Position,
+                Camera.FrontVector.Normalized(),
+                colliderAabb);
+
+            if (hit != null && hit.Value.Distance < 1.5f)
+            {
+                objectInRange = interactable;
+                if (_isInteractButtonPressed)
+                {
+                    interactable.InteractCallback();
+                }
+
+                return;
+            }
         }
     }
 

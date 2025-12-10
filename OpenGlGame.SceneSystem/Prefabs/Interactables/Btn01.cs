@@ -3,19 +3,24 @@ using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
+using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Mathematics;
 
 namespace OpenGlGame.SceneSystem.Prefabs.Interactables;
 
 public class Btn01 : GameObject
 {
+    public Action? PressedCallback { get; set; }
+
+    private const float ACTIVATION_TIME = 0.2f;
+
     private readonly Transform3D _transform;
     private MeshMaterial _material;
 
     private bool _isPressing;
     private double _pressingTime;
 
-    public Btn01(Transform3D transform, bool hasAlpha = false, bool hasBackfaceCulling = true)
+    public Btn01(Transform3D transform, bool isAlreadyPressed, bool hasAlpha = false, bool hasBackfaceCulling = true)
     {
         UpdateEvent += OnUpdate;
 
@@ -37,17 +42,27 @@ public class Btn01 : GameObject
         }
 
         AddComponent(
+            new Interactable(
+                new Aabb(new Vector3(-0.16f, -0.025f, -0.16f), new Vector3(0.33f, 0.05f, 0.33f)),
+                Press));
+        AddComponent(
             new MeshRenderer
             {
                 VertBuffers = buffers,
                 Material = _material
             });
+
+        if (isAlreadyPressed)
+        {
+            _pressingTime = ACTIVATION_TIME + 0.01f;
+            ShowAsPressed();
+        }
     }
 
     public void Press()
     {
         //this is a one-shot button: once pressed, it stays that way
-        if (_isPressing || _pressingTime > 0.5f)
+        if (_isPressing || _pressingTime > ACTIVATION_TIME)
         {
             return;
         }
@@ -64,12 +79,13 @@ public class Btn01 : GameObject
             Vector4 pressDirection =
                 new Vector4(Player.Instance.Camera.WorldUpVector, 1.0f) * _transform.GetModelMatrix();
             _transform.Position +=
-                Vector3.Cross(pressDirection.Xyz.Normalized(), new Vector3(0f, 0f, 0.05f))
+                Vector3.Cross(pressDirection.Xyz.Normalized(), new Vector3(0f, 0f, 0.16f))
                 * (float)deltaTime;
 
-            if (_pressingTime > 0.5f)
+            if (_pressingTime > ACTIVATION_TIME)
             {
                 ShowAsPressed();
+                PressedCallback?.Invoke();
                 _isPressing = false;
             }
         }
