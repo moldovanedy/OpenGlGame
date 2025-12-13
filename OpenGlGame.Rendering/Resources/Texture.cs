@@ -120,4 +120,9 @@ public class Texture : ResourceBase, IDisposable
         GL.DeleteTexture(GlTextureId);
         GC.SuppressFinalize(this);
     }
+
+    ~Texture()
+    {
+        Dispose();
+    }
 }

@@ -55,6 +55,11 @@ public sealed class Shader : ResourceBase, IDisposable
         GlId = -1;
     }
 
+    ~Shader()
+    {
+        Dispose();
+    }
+
     public void SetUniformScalar(string name, float value)
     {
         GL.Uniform1(GL.GetUniformLocation(GlId, name), value);

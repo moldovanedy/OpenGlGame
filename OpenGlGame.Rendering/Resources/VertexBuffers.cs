@@ -89,4 +89,9 @@ public sealed class VertexBuffers : ResourceBase, IDisposable
             _ebo = -1;
         }
     }
+
+    ~VertexBuffers()
+    {
+        Dispose();
+    }
 }

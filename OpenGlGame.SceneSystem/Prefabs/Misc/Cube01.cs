@@ -14,7 +14,16 @@ public class Cube01 : GameObject
     public Cube01(Transform3D transform)
     {
         UpdateEvent += OnUpdate;
-        _material = CommonMaterials.CreateDiffuseLitMaterial();
+        Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
+            "/assets/models/cube_01/tex_diffuse01.png",
+            new Texture.TextureFormat());
+        if (diffuseTex == null)
+        {
+            throw new NullReferenceException("Cube01 texture was not found");
+        }
+
+        _material = CommonMaterials.CreateDiffuseLitMaterial(diffuseTex);
+        // _material = CommonMaterials.CreateDiffuseLitMaterial();
 
         AddComponent(transform);
         AddComponent(new RigidBody

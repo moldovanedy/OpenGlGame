@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
@@ -9,6 +10,7 @@ namespace OpenGlGame.SceneSystem;
 public class SceneManager
 {
     private GameObject[] _currentGameObjects = [];
+    private PointLight[] _cachedPointLights = [];
     private readonly Renderer _systemRenderer = new();
 
     public void SetLevel(GameObject[] gameObjects)
@@ -26,17 +28,30 @@ public class SceneManager
             gameObject.SystemRenderer = _systemRenderer;
         }
 
-        List<Renderer.PointLightData> pointLightsData = [];
+        // List<Renderer.PointLightData> pointLightsData = [];
+        // foreach (GameObject gameObject in gameObjects)
+        // {
+        //     IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
+        //     if (pointLight is PointLight light)
+        //     {
+        //         pointLightsData.Add(light.LightData);
+        //     }
+        // }
+        //
+        // _systemRenderer.UpdatePointLights(pointLightsData.ToArray());
+
+        List<PointLight> pointLights = [];
         foreach (GameObject gameObject in gameObjects)
         {
             IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
             if (pointLight is PointLight light)
             {
-                pointLightsData.Add(light.LightData);
+                pointLights.Add(light);
             }
         }
 
-        _systemRenderer.UpdatePointLights(pointLightsData.ToArray());
+        _cachedPointLights = pointLights.ToArray();
+
         PhysicsSystem.Instance.RecreatePhysicsComponentsLists(gameObjects);
         PhysicsSystem.Instance.RecreateInteractablesList(gameObjects);
     }
@@ -48,7 +63,10 @@ public class SceneManager
             return;
         }
 
-        MainThreadDispatcher.ExecutePending();
+        List<Renderer.PointLightData> pointLightsData = [];
+        pointLightsData.AddRange(_cachedPointLights.Select(pointLight => pointLight.LightData));
+        _systemRenderer.UpdatePointLights(pointLightsData.ToArray());
+
         Player.Instance.Update(frameData.DeltaTime);
         _systemRenderer.UpdateViewProjectionMatrix(Player.Instance.Camera.GetViewProjectionMatrix());
 

@@ -86,10 +86,14 @@ public class Player : GameObject
         _isInteractButtonPressed = isPressingInteractButton;
     }
 
-    public void RequestLoadingNextLevel()
+    public void RequestLoadingNextLevel(Vector3 teleportButtonCurrentPosition)
     {
+        //1.74 is the X offset of the teleport button from the transition room center
+        float deltaX = _transform.Position.X - teleportButtonCurrentPosition.X + 1.74f;
+        float deltaZ = _transform.Position.Z - teleportButtonCurrentPosition.Z;
+
         NextLevelRequestedEvent?.Invoke();
-        _transform.Position = SpawnPosition;
+        _transform.Position = new Vector3(SpawnPosition.X + deltaX, SpawnPosition.Y, SpawnPosition.Z + deltaZ);
 
         _rigidBody.InternalPosition = _transform.Position;
         _rigidBody.InternalPreviousPosition = _transform.Position;

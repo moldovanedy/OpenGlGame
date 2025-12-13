@@ -2,6 +2,7 @@ using System;
 using System.Timers;
 using OpenGlGame.Levels;
 using OpenGlGame.Levels.Level1;
+using OpenGlGame.Levels.Level2;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
@@ -41,6 +42,7 @@ public class Application : IDisposable
     public void Dispose()
     {
         Player.Instance.ExitScene();
+        _defaultTexture = null;
 
         _physicsUpdateTimer?.Stop();
         _physicsUpdateTimer = null;
@@ -109,6 +111,8 @@ public class Application : IDisposable
             _isFullscreen = !_isFullscreen;
             _isFullscreenToggleRequested = false;
         }
+
+        MainThreadDispatcher.ExecutePending();
 
         if (_isPaused)
         {
@@ -309,6 +313,10 @@ public class Application : IDisposable
         GL.Viewport(0, 0, e.Width, e.Height);
     }
 
+    //this is needed so that the texture doesn't get disposed of by the fact that it's not used anywhere
+    // ReSharper disable once NotAccessedField.Local
+    private static Texture? _defaultTexture;
+
     private static void GenerateRuntimeAssets()
     {
         byte[] rawData = new byte[2 * 2 * 4];
@@ -326,7 +334,7 @@ public class Application : IDisposable
         };
 
         //generate blank, default texture
-        ResourceManager.Instance.CreateTexture(
+        _defaultTexture = ResourceManager.Instance.CreateTexture(
             "default_texture.rgba.raw",
             rawData,
             texFormat

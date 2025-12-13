@@ -136,7 +136,8 @@ public class PhysicsSystem
 
                 if (Aabb.DoBoxesIntersect(rigidBody.InternalAaBoundingBox, otherRigidBody.InternalAaBoundingBox))
                 {
-                    Console.WriteLine("RigidBody collided with RigidBody");
+                    // Console.WriteLine("RigidBody collided with RigidBody");
+                    ResolveCollision(rigidBody, otherRigidBody);
                 }
             }
 
@@ -518,69 +519,143 @@ public class PhysicsSystem
             // This ensures the bounce/slide is respected in the next frame
             rigidBody.InternalPreviousPosition = rigidBody.InternalPosition - newVelocity;
         }
+    }
 
+    private static void ResolveCollision(RigidBody rigidBody1, RigidBody rigidBody2)
+    {
+        //AI-generated... physics is hard
 
-        // var rigidBodyTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
-        // if (rigidBodyTransform == null)
+        var rigidBody1Transform = (Transform3D?)rigidBody1.Owner?.GetComponent(nameof(Transform3D));
+        if (rigidBody1Transform == null)
+        {
+            throw new Exception("RigidBody1 did not have a Transform3D component");
+        }
+
+        var rigidBody2Transform = (Transform3D?)rigidBody2.Owner?.GetComponent(nameof(Transform3D));
+        if (rigidBody2Transform == null)
+        {
+            throw new Exception("RigidBody2 did not have a Transform3D component");
+        }
+
+        // Make sure AABBs represent the current transforms (they may have been moved by earlier collision resolution this tick)
+        rigidBody1.InternalAaBoundingBox = new Aabb(rigidBody1.BoundingBox, rigidBody1Transform.GetModelMatrix());
+        rigidBody2.InternalAaBoundingBox = new Aabb(rigidBody2.BoundingBox, rigidBody2Transform.GetModelMatrix());
+
+        Aabb a = rigidBody1.InternalAaBoundingBox;
+        Aabb b = rigidBody2.InternalAaBoundingBox;
+
+        // Compute overlap along each axis (MTV candidate)
+        float overlapX1 = b.End.X - a.Start.X;
+        float overlapX2 = a.End.X - b.Start.X;
+        float overlapX = MathF.Min(overlapX1, overlapX2);
+
+        float overlapY1 = b.End.Y - a.Start.Y;
+        float overlapY2 = a.End.Y - b.Start.Y;
+        float overlapY = MathF.Min(overlapY1, overlapY2);
+
+        float overlapZ1 = b.End.Z - a.Start.Z;
+        float overlapZ2 = a.End.Z - b.Start.Z;
+        float overlapZ = MathF.Min(overlapZ1, overlapZ2);
+
+        // Choose the axis with the smallest penetration depth
+        int axis = 0; // 0:X 1:Y 2:Z
+        float penetration = overlapX;
+        if (overlapY < penetration)
+        {
+            penetration = overlapY;
+            axis = 1;
+        }
+
+        if (overlapZ < penetration)
+        {
+            penetration = overlapZ;
+            axis = 2;
+        }
+
+        // Determine collision normal direction using centers
+        Vector3 centerA = (a.Start + a.End) * 0.5f;
+        Vector3 centerB = (b.Start + b.End) * 0.5f;
+
+        Vector3 normal;
+        const float EPSILON = 0.0001f;
+
+        switch (axis)
+        {
+            case 0:
+                normal = centerA.X < centerB.X ? new Vector3(-1, 0, 0) : new Vector3(1, 0, 0);
+                break;
+            case 1:
+                normal = centerA.Y < centerB.Y ? new Vector3(0, -1, 0) : new Vector3(0, 1, 0);
+                break;
+            default:
+                normal = centerA.Z < centerB.Z ? new Vector3(0, 0, -1) : new Vector3(0, 0, 1);
+                break;
+        }
+
+        penetration = MathF.Max(penetration, 0f);
+
+        // --- 1) Positional correction (split by inverse mass) to separate the bodies ---
+        float invMass1 = rigidBody1.Mass > 0f ? 1f / rigidBody1.Mass : 0f;
+        float invMass2 = rigidBody2.Mass > 0f ? 1f / rigidBody2.Mass : 0f;
+        float invMassSum = invMass1 + invMass2;
+
+        if (invMassSum <= 0f || penetration <= 0f)
+        {
+            // If both are "infinite mass", we can't resolve meaningfully.
+            return;
+        }
+
+        // Small slop prevents jitter from tiny penetrations; percent controls how aggressively we correct.
+        const float SLOP = 0.001f;
+        const float PERCENT = 1.2f;
+
+        float correctedPenetration = MathF.Max(penetration - SLOP, 0f);
+        Vector3 correction = correctedPenetration / invMassSum * PERCENT * normal;
+
+        rigidBody1.InternalPosition += correction * invMass1;
+        rigidBody2.InternalPosition -= correction * invMass2;
+
+        rigidBody1Transform.Position = rigidBody1.InternalPosition;
+        rigidBody2Transform.Position = rigidBody2.InternalPosition;
+
+        // Refresh AABBs after position changes
+        rigidBody1.InternalAaBoundingBox = new Aabb(rigidBody1.BoundingBox, rigidBody1Transform.GetModelMatrix());
+        rigidBody2.InternalAaBoundingBox = new Aabb(rigidBody2.BoundingBox, rigidBody2Transform.GetModelMatrix());
+
+        // --- 2) Velocity (impulse) resolution based on masses and current velocities ---
+        const float DT = (float)PHYSICS_TICK_SECONDS;
+
+        Vector3 v1 = rigidBody1.DerivedVelocity;
+        Vector3 v2 = rigidBody2.DerivedVelocity;
+
+        Vector3 relativeVelocity = v1 - v2;
+        float velAlongNormal = Vector3.Dot(relativeVelocity, normal);
+
+        // If they're separating along the normal, don't apply impulse (positional correction already handled overlap).
+        // EDIT: applying this makes the player unable to move on top of rigid bodies (it makes it seem that it's not
+        // on the ground); this is most likely caused by how the ground check is done
+
+        // if (velAlongNormal > 0f)
         // {
-        //     throw new Exception("RigidBody did not have a Transform3D component");
+        //     return;
         // }
-        //
-        // var colliderTransform = (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D));
-        // if (colliderTransform == null)
-        // {
-        //     throw new Exception("StaticCollider did not have a Transform3D component");
-        // }
-        //
-        // Aabb colliderAabb = new(staticCollider.BoundingBox, colliderTransform.GetModelMatrix());
-        // Aabb rigidBodyAabb = rigidBody.InternalAaBoundingBox;
-        //
-        // float overlapX1 = colliderAabb.End.X - rigidBodyAabb.Start.X;
-        // float overlapX2 = rigidBodyAabb.End.X - colliderAabb.Start.X;
-        // float overlapX = MathF.Min(overlapX1, overlapX2);
-        //
-        // float overlapY1 = colliderAabb.End.Y - rigidBodyAabb.Start.Y;
-        // float overlapY2 = rigidBodyAabb.End.Y - colliderAabb.Start.Y;
-        // float overlapY = MathF.Min(overlapY1, overlapY2);
-        //
-        // float overlapZ1 = colliderAabb.End.Z - rigidBodyAabb.Start.Z;
-        // float overlapZ2 = rigidBodyAabb.End.Z - colliderAabb.Start.Z;
-        // float overlapZ = MathF.Min(overlapZ1, overlapZ2);
-        //
-        // float minOverlap = MathF.Min(overlapX, MathF.Min(overlapY, overlapZ));
-        //
-        // float correctionAmount = minOverlap + 0.0001f;
-        // Vector3 correctionVector = Vector3.Zero;
-        //
-        // if (MathF.Abs(minOverlap - overlapX) < 1e-6f)
-        // {
-        //     //push along X; if overlapX1 is smaller, rigidbody is to the right, push positive.
-        //     correctionVector = overlapX1 < overlapX2
-        //         ? new Vector3(correctionAmount, 0, 0)
-        //         : new Vector3(-correctionAmount, 0, 0);
-        // }
-        // else if (MathF.Abs(minOverlap - overlapY) < 1e-6f)
-        // {
-        //     correctionVector = overlapY1 < overlapY2
-        //         ? new Vector3(0, correctionAmount, 0)
-        //         : new Vector3(0, -correctionAmount, 0);
-        // }
-        // else if (MathF.Abs(minOverlap - overlapZ) < 1e-6f)
-        // {
-        //     correctionVector = overlapZ1 < overlapZ2
-        //         ? new Vector3(0, 0, correctionAmount)
-        //         : new Vector3(0, 0, -correctionAmount);
-        // }
-        //
-        // rigidBody.InternalPosition += correctionVector;
-        // rigidBodyTransform.Position = rigidBody.InternalPosition;
-        //
-        // //reflect velocity (for pushback)
-        // Vector3 normal = correctionVector.Normalized();
-        // Vector3 velocity = rigidBody.DerivedVelocity;
-        //
-        // float velocityAlongNormal = Vector3.Dot(velocity, normal);
-        // Vector3 newVelocity = velocity - (1f + rigidBody.RestitutionCoefficient) * velocityAlongNormal * normal;
-        // rigidBody.InternalPreviousPosition = rigidBody.InternalPosition - newVelocity;
+
+        float restitution = MathF.Min(rigidBody1.RestitutionCoefficient, rigidBody2.RestitutionCoefficient);
+
+        float j = -(1f + restitution) * velAlongNormal;
+        j /= invMassSum;
+
+        Vector3 impulse = j * normal;
+
+        v1 += impulse * invMass1;
+        v2 -= impulse * invMass2;
+
+        // Verlet note:
+        // velocity is derived from (pos - prevPos) / dt, so enforce the new velocities by updating PreviousPosition.
+        // Also add a tiny bias along the normal to reduce "sticking" when bodies remain in contact.
+        Vector3 bias = normal * EPSILON;
+
+        rigidBody1.InternalPreviousPosition = rigidBody1.InternalPosition - v1 * DT + bias;
+        rigidBody2.InternalPreviousPosition = rigidBody2.InternalPosition - v2 * DT - bias;
     }
 }

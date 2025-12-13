@@ -14,6 +14,7 @@ public class Wall03 : GameObject
 
     public Wall03(Transform3D transform, bool hasAlpha = false, bool hasBackfaceCulling = true)
     {
+        UpdateEvent += OnUpdate;
         Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
             "/assets/models/wall_03/tex_diffuse01.png",
             new Texture.TextureFormat());
@@ -22,14 +23,14 @@ public class Wall03 : GameObject
             throw new NullReferenceException("Wall texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseTiledUnlitMaterial(diffuseTex, hasAlpha, hasBackfaceCulling);
+        _material = CommonMaterials.CreateDiffuseTiledLitMaterial(diffuseTex, hasAlpha, hasBackfaceCulling);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 
         AddComponent(transform);
         AddComponent(
             new StaticCollider(
-                new Aabb(new Vector3(-0.5f, -0.01f, -0.5f), new Vector3(1f, 0.02f, 1f))));
+                new Aabb(new Vector3(-0.5f, -0.2f, -0.5f), new Vector3(1f, 0.2f, 1f))));
 
         VertexBuffers? buffers =
             ResourceManager.Instance.GetVertexBuffers("/assets/models/wall_03/wall_03.glb.vert01")
@@ -47,5 +48,13 @@ public class Wall03 : GameObject
                 VertBuffers = buffers,
                 Material = _material
             });
+    }
+
+    private void OnUpdate(double deltaTime)
+    {
+        //actual material properties
+        _material.SetProperty("material.diffuseTex", 0);
+        _material.SetProperty("material.specularCol", new Vector3(0.1f));
+        _material.SetProperty("material.shininess", 8.0f);
     }
 }

@@ -17,6 +17,7 @@ public class TransitionRoom : ILevelData
 
     private Door01? _movingLeftDoor;
     private Door01? _movingRightDoor;
+    private Btn01? _button;
 
     private readonly bool _isOutRoom;
     private readonly TransitionRoomCallbacks _callbackManager = new();
@@ -205,6 +206,38 @@ public class TransitionRoom : ILevelData
 
     private void AddButtonStand(List<GameObject> objects)
     {
+        _button = new Btn01(
+            new Transform3D
+            {
+                Position = new Vector3(1.74f, -0.775f, 0f),
+                Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(35f)),
+                Scale = new Vector3(1f, 1f, 1f)
+            },
+            !_isOutRoom)
+        {
+            PressedCallback = () =>
+            {
+                if (_movingRightDoor != null && _movingLeftDoor != null)
+                {
+                    _callbackManager.CloseDoors(_movingLeftDoor, _movingRightDoor);
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(700);
+                        MainThreadDispatcher.Enqueue(() =>
+                        {
+                            Vector3 pos = Vector3.Zero;
+                            if (_button?.GetComponent(nameof(Transform3D)) is Transform3D btnTransform)
+                            {
+                                pos = btnTransform.Position;
+                            }
+
+                            Player.Instance.RequestLoadingNextLevel(pos);
+                        });
+                    });
+                }
+            }
+        };
+
         objects.AddRange([
             new BtnStand01(
                 new Transform3D
@@ -213,28 +246,7 @@ public class TransitionRoom : ILevelData
                     Rotation = new Quaternion(0f, float.DegreesToRadians(180f), 0f),
                     Scale = new Vector3(1f, 1f, 1f)
                 }),
-            new Btn01(
-                new Transform3D
-                {
-                    Position = new Vector3(1.74f, -0.775f, 0f),
-                    Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(35f)),
-                    Scale = new Vector3(1f, 1f, 1f)
-                },
-                !_isOutRoom)
-            {
-                PressedCallback = () =>
-                {
-                    if (_movingRightDoor != null && _movingLeftDoor != null)
-                    {
-                        _callbackManager.CloseDoors(_movingLeftDoor, _movingRightDoor);
-                        Task.Run(async () =>
-                        {
-                            await Task.Delay(700);
-                            MainThreadDispatcher.Enqueue(() => { Player.Instance.RequestLoadingNextLevel(); });
-                        });
-                    }
-                }
-            }
+            _button
         ]);
     }
 
