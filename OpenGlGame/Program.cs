@@ -38,8 +38,8 @@ internal static class Program
         _window.KeyDown += _app.OnKeyDown;
         _window.KeyUp += _app.OnKeyUp;
 
-        _window.MouseDown += Application.OnMouseDown;
-        _window.MouseUp += Application.OnMouseUp;
+        _window.MouseDown += _app.OnMouseDown;
+        _window.MouseUp += _app.OnMouseUp;
         _window.MouseMove += _app.OnMouseMove;
 
         _window.Run();
@@ -52,8 +52,8 @@ internal static class Program
         _window.KeyDown -= _app.OnKeyDown;
         _window.KeyUp -= _app.OnKeyUp;
 
-        _window.MouseDown -= Application.OnMouseDown;
-        _window.MouseUp -= Application.OnMouseUp;
+        _window.MouseDown -= _app.OnMouseDown;
+        _window.MouseUp -= _app.OnMouseUp;
         _window.MouseMove -= _app.OnMouseMove;
 
         _app.Dispose();

@@ -4,6 +4,7 @@ using OpenGlGame.Data;
 using OpenGlGame.Rendering.Operations;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Matrix4 = OpenTK.Mathematics.Matrix4;
 
 namespace OpenGlGame.Rendering;
@@ -16,13 +17,23 @@ public class Renderer
         public int FbHeight { get; }
         public Vector3 CameraWorldPosition { get; }
         public double DeltaTime { get; }
+        public Vector2 NormalizedMousePosition { get; }
+        public MouseButton? CurrentlyPressedMouseButton { get; }
 
-        public RenderFrameData(int fbWidth, int fbHeight, Vector3 cameraWorldPosition, double deltaTime)
+        public RenderFrameData(
+            int fbWidth,
+            int fbHeight,
+            Vector3 cameraWorldPosition,
+            double deltaTime,
+            Vector2 normalizedMousePosition,
+            MouseButton? currentlyPressedMouseButton)
         {
             FbWidth = fbWidth;
             FbHeight = fbHeight;
             CameraWorldPosition = cameraWorldPosition;
             DeltaTime = deltaTime;
+            NormalizedMousePosition = normalizedMousePosition;
+            CurrentlyPressedMouseButton = currentlyPressedMouseButton;
         }
     }
 
@@ -195,6 +206,16 @@ public class Renderer
                     {
                         GL.Disable(EnableCap.CullFace);
                     }
+                }
+
+                if ((data & 0b10) != 0)
+                {
+                    GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                    GL.Enable(EnableCap.Blend);
+                }
+                else
+                {
+                    GL.Disable(EnableCap.Blend);
                 }
             }
 

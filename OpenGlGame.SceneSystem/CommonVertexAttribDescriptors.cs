@@ -55,4 +55,36 @@ public static class CommonVertexAttribDescriptors
                 9 * sizeof(float),
                 6 * sizeof(float))
         );
+
+    public static readonly VertexAttribDescriptors UiMesh =
+        ResourceManager.Instance.GetVertexAttributeDescriptors(
+            "/assets/vertex_attributes/runtime_gen/ui_mesh")
+        ?? ResourceManager.Instance.CreateVertexAttribDescriptors(
+            "/assets/vertex_attributes/runtime_gen/ui_mesh",
+            new VertexAttribDescriptors.AttribDescriptor(
+                0,
+                2,
+                VertexAttribPointerType.Float,
+                2 * sizeof(float),
+                0)
+        );
+
+    public static readonly VertexAttribDescriptors UiTexture =
+        ResourceManager.Instance.GetVertexAttributeDescriptors(
+            "/assets/vertex_attributes/runtime_gen/ui_texture")
+        ?? ResourceManager.Instance.CreateVertexAttribDescriptors(
+            "/assets/vertex_attributes/runtime_gen/ui_texture",
+            new VertexAttribDescriptors.AttribDescriptor(
+                0,
+                2,
+                VertexAttribPointerType.Float,
+                4 * sizeof(float),
+                0),
+            new VertexAttribDescriptors.AttribDescriptor(
+                1,
+                2,
+                VertexAttribPointerType.Float,
+                4 * sizeof(float),
+                2 * sizeof(float))
+        );
 }

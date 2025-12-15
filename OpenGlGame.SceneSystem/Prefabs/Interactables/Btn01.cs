@@ -55,6 +55,12 @@ public class Btn01 : GameObject
         if (isAlreadyPressed)
         {
             _pressingTime = ACTIVATION_TIME + 0.01f;
+
+            Vector4 pressDirection =
+                new Vector4(Player.Instance.Camera.WorldUpVector, 1.0f) * _transform.GetModelMatrix();
+            _transform.Position +=
+                Vector3.Cross(pressDirection.Xyz.Normalized(), new Vector3(0f, 0f, 0.16f * ACTIVATION_TIME));
+
             ShowAsPressed();
         }
     }

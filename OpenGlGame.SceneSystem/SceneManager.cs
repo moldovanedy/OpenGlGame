@@ -4,14 +4,34 @@ using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace OpenGlGame.SceneSystem;
 
 public class SceneManager
 {
+    public static SceneManager Instance
+    {
+        get
+        {
+            _instance ??= new SceneManager();
+            return _instance;
+        }
+    }
+
+    private static SceneManager? _instance;
+
+    public Vector2 NormalizedMousePosition { get; private set; }
+    public MouseButton? CurrentlyPressedMouseButton { get; private set; }
+
     private GameObject[] _currentGameObjects = [];
     private PointLight[] _cachedPointLights = [];
     private readonly Renderer _systemRenderer = new();
+
+    private SceneManager()
+    {
+    }
 
     public void SetLevel(GameObject[] gameObjects)
     {
@@ -62,6 +82,9 @@ public class SceneManager
         {
             return;
         }
+
+        NormalizedMousePosition = frameData.NormalizedMousePosition;
+        CurrentlyPressedMouseButton = frameData.CurrentlyPressedMouseButton;
 
         List<Renderer.PointLightData> pointLightsData = [];
         pointLightsData.AddRange(_cachedPointLights.Select(pointLight => pointLight.LightData));

@@ -32,8 +32,6 @@ uniform Material material;
 uniform Light lights[10];
 uniform int lightCount;
 
-uniform sampler2D diffuseTexture;
-
 void main()
 {
     vec3 finalOutput = vec3(0.0);

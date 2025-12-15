@@ -120,29 +120,6 @@ public static class CommonMaterials
             hasBackfaceCulling);
     }
 
-    public static MeshMaterial CreateDiffuseTiledUnlitMaterial(
-        Texture? texture = null,
-        bool hasAlphaBlending = false,
-        bool hasBackfaceCulling = true)
-    {
-        if (texture == null)
-        {
-            texture = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
-            if (texture == null)
-            {
-                throw new NullReferenceException("DiffuseTiledUnlitMaterial: Default texture was not found");
-            }
-        }
-
-        return new MeshMaterial(
-            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/diffuse_tiled_unlit")
-            ?? throw new Exception("DiffuseTiledUnlitMaterial: Could not find shader file"),
-            CommonVertexAttribDescriptors.DiffuseTextureMesh,
-            [texture],
-            hasAlphaBlending,
-            hasBackfaceCulling);
-    }
-
     public static MeshMaterial CreateDiffuseLitMaterial(
         Texture? texture = null,
         bool hasAlphaBlending = false,
@@ -184,6 +161,42 @@ public static class CommonMaterials
             ResourceManager.Instance.GetOrCreateShader("/assets/shaders/diffuse_tiled_lit")
             ?? throw new Exception("DiffuseTiledLitMaterial: Could not find shader file"),
             CommonVertexAttribDescriptors.DiffuseTextureMesh,
+            [texture],
+            hasAlphaBlending,
+            hasBackfaceCulling);
+    }
+
+    public static MeshMaterial CreateUiPolygonMaterial(
+        bool hasAlphaBlending = false,
+        bool hasBackfaceCulling = true)
+    {
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/ui_polygon")
+            ?? throw new Exception("UiPolygonMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.UiMesh,
+            null,
+            hasAlphaBlending,
+            hasBackfaceCulling);
+    }
+
+    public static MeshMaterial CreateUiTexAtlasMaterial(
+        Texture? texture = null,
+        bool hasAlphaBlending = false,
+        bool hasBackfaceCulling = true)
+    {
+        if (texture == null)
+        {
+            texture = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (texture == null)
+            {
+                throw new NullReferenceException("UiTexAtlasMaterial: Default texture was not found");
+            }
+        }
+
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/ui_tex_atlas")
+            ?? throw new Exception("UiTexAtlasMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.UiMesh,
             [texture],
             hasAlphaBlending,
             hasBackfaceCulling);

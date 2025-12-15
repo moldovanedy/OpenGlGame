@@ -3,6 +3,7 @@ using System.Timers;
 using OpenGlGame.Levels;
 using OpenGlGame.Levels.Level1;
 using OpenGlGame.Levels.Level2;
+using OpenGlGame.Levels.Ui;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
@@ -18,7 +19,6 @@ namespace OpenGlGame;
 
 public class Application : IDisposable
 {
-    private readonly SceneManager _sceneManager = new();
     private GameWindow? _windowRef;
     private Timer? _physicsUpdateTimer;
 
@@ -26,6 +26,7 @@ public class Application : IDisposable
 
     private readonly ILevelData[] _levels =
     [
+        new MainMenu(),
         new Level1Data(),
         new Level2Data()
     ];
@@ -35,8 +36,10 @@ public class Application : IDisposable
     private bool _isFullscreenToggleRequested;
     private bool _isFullscreen;
 
-    private int _windowedWidth = 800;
+    private int _windowedWidth = (int)(600f * Renderer.ASPECT_RATIO);
     private int _windowedHeight = 600;
+    private int _fbWidth = (int)(600f * Renderer.ASPECT_RATIO);
+    private int _fbHeight = 600;
     private bool _isPaused;
 
     public void Dispose()
@@ -67,7 +70,6 @@ public class Application : IDisposable
 
         GL.Enable(EnableCap.Multisample);
         GL.Enable(EnableCap.DepthTest);
-        GL.Enable(EnableCap.FramebufferSrgb);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         GenerateRuntimeAssets();
@@ -84,10 +86,41 @@ public class Application : IDisposable
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="levelIndex">Always level number minus one.</param>
+    /// <param name="levelIndex">Always level number. 0 for the main menu.</param>
     internal void SetLevel(int levelIndex)
     {
-        _sceneManager.SetLevel(_levels[levelIndex].LoadAndGetGameObjects());
+        GameObject[] combined;
+        //actual levels
+        if (levelIndex > 0)
+        {
+            GameObject[] levelObjects = _levels[levelIndex].LoadAndGetGameObjects();
+            GameObject[] hudObjects = new Hud().LoadAndGetGameObjects();
+
+            combined = new GameObject[levelObjects.Length + hudObjects.Length];
+            Array.Copy(levelObjects, combined, levelObjects.Length);
+            Array.Copy(hudObjects, 0, combined, levelObjects.Length, hudObjects.Length);
+
+            if (_windowRef != null)
+            {
+                _windowRef.CursorState = CursorState.Grabbed;
+            }
+
+            GL.Enable(EnableCap.FramebufferSrgb);
+        }
+        //main menu
+        else
+        {
+            combined = _levels[levelIndex].LoadAndGetGameObjects();
+
+            if (_windowRef != null)
+            {
+                _windowRef.CursorState = CursorState.Normal;
+            }
+
+            GL.Disable(EnableCap.FramebufferSrgb);
+        }
+
+        SceneManager.Instance.SetLevel(combined);
         _currentLevelIndex = levelIndex;
     }
 
@@ -112,6 +145,9 @@ public class Application : IDisposable
             _isFullscreenToggleRequested = false;
         }
 
+        _fbWidth = window.FramebufferSize.X;
+        _fbHeight = window.FramebufferSize.Y;
+
         MainThreadDispatcher.ExecutePending();
 
         if (_isPaused)
@@ -126,8 +162,10 @@ public class Application : IDisposable
             window.FramebufferSize.X,
             window.FramebufferSize.Y,
             Player.Instance.Camera.Position,
-            e.Time);
-        _sceneManager.Update(ref frameData);
+            e.Time,
+            GetNormalizedMouseCoords(),
+            _pressedMouseButton);
+        SceneManager.Instance.Update(ref frameData);
 
         window.SwapBuffers();
     }
@@ -139,7 +177,7 @@ public class Application : IDisposable
             return;
         }
 
-        _sceneManager.PhysicsUpdate();
+        SceneManager.Instance.PhysicsUpdate();
     }
 
     internal void FocusChanged(FocusedChangedEventArgs e)
@@ -148,6 +186,11 @@ public class Application : IDisposable
     }
 
     #region Input
+
+    private float _lastMouseX;
+    private float _lastMouseY;
+    private bool _isFirstMouse = true;
+    private MouseButton? _pressedMouseButton;
 
     private Camera.CameraMovement _playerDirection;
     private Camera.CameraMovement _pendingContradictoryMovements;
@@ -267,39 +310,40 @@ public class Application : IDisposable
         Player.Instance.InputMovementChanged(_playerDirection);
     }
 
-    private float _lastX;
-    private float _lastY;
-    private bool _isFirstMouse = true;
-
     internal void OnMouseMove(MouseMoveEventArgs e)
     {
         if (_isFirstMouse)
         {
-            _lastX = e.X;
-            _lastY = e.Y;
+            _lastMouseX = e.X;
+            _lastMouseY = e.Y;
             _isFirstMouse = false;
         }
 
-        float xOffset = e.X - _lastX;
+        float xOffset = e.X - _lastMouseX;
         //Y-axis reversed
-        float yOffset = _lastY - e.Y;
+        float yOffset = _lastMouseY - e.Y;
 
-        _lastX = e.X;
-        _lastY = e.Y;
+        _lastMouseX = e.X;
+        _lastMouseY = e.Y;
 
-        Player.Instance.Camera.InputLookDirectionChanged(xOffset, yOffset);
+        if (_currentLevelIndex != 0)
+        {
+            Player.Instance.Camera.InputLookDirectionChanged(xOffset, yOffset);
+        }
     }
 
-    internal static void OnMouseDown(MouseButtonEventArgs e)
+    internal void OnMouseDown(MouseButtonEventArgs e)
     {
+        _pressedMouseButton = e.Button;
         if (e.Button == MouseButton.Left)
         {
             Player.Instance.InputInteractButtonChanged(true);
         }
     }
 
-    internal static void OnMouseUp(MouseButtonEventArgs e)
+    internal void OnMouseUp(MouseButtonEventArgs e)
     {
+        _pressedMouseButton = null;
         if (e.Button == MouseButton.Left)
         {
             Player.Instance.InputInteractButtonChanged(false);
@@ -339,5 +383,43 @@ public class Application : IDisposable
             rawData,
             texFormat
         );
+    }
+
+    private Vector2 GetNormalizedMouseCoords()
+    {
+        //keep 16:9 aspect ratio
+        float actualAspectRatio = _fbWidth / (float)_fbHeight;
+        float normalizedX;
+        float normalizedY;
+
+        // ReSharper disable once ConvertIfStatementToSwitchStatement
+        if (actualAspectRatio > Renderer.ASPECT_RATIO)
+        {
+            float newWidth = _fbHeight * Renderer.ASPECT_RATIO;
+            float offsetX = (_fbWidth - newWidth) / 2.0f;
+
+            if (_lastMouseX < offsetX || _lastMouseX > newWidth + offsetX)
+            {
+                return new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+            }
+
+            normalizedX = float.Lerp(-1.0f, 1.0f, (_lastMouseX - offsetX) / (_fbWidth - offsetX * 2f));
+            normalizedY = float.Lerp(1.0f, -1.0f, _lastMouseY / _fbHeight);
+        }
+        else
+        {
+            float newHeight = _fbWidth / Renderer.ASPECT_RATIO;
+            float offsetY = (_fbHeight - newHeight) / 2.0f;
+
+            if (_lastMouseY < offsetY || _lastMouseY > newHeight + offsetY)
+            {
+                return new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+            }
+
+            normalizedX = float.Lerp(-1.0f, 1.0f, _lastMouseX / _fbWidth);
+            normalizedY = float.Lerp(1.0f, -1.0f, (_lastMouseY - offsetY) / (_fbHeight - offsetY * 2f));
+        }
+
+        return new Vector2(normalizedX, normalizedY);
     }
 }
