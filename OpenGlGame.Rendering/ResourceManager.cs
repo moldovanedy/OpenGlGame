@@ -66,7 +66,7 @@ public class ResourceManager : IDisposable
 
     public Shader? GetOrCreateShader(string id)
     {
-        if (_shaders.TryGetValue(id, out WeakReference? shaderRef))
+        if (_shaders.TryGetValue(id, out WeakReference? shaderRef) && shaderRef.Target != null)
         {
             return shaderRef.Target as Shader;
         }
@@ -77,9 +77,10 @@ public class ResourceManager : IDisposable
 
     public Texture? GetOrCreateTexture(
         string id,
-        Texture.TextureFormat? creationTexFormat = null)
+        Texture.TextureFormat? creationTexFormat = null,
+        bool shouldSetMipmaps = true)
     {
-        if (_textures.TryGetValue(id, out WeakReference? textureRef))
+        if (_textures.TryGetValue(id, out WeakReference? textureRef) && textureRef.Target != null)
         {
             return textureRef.Target as Texture;
         }
@@ -88,7 +89,7 @@ public class ResourceManager : IDisposable
             creationTexFormat == null
                 ? throw new Exception("Texture was not found, but no creation parameters were provided.")
                 //automatically handles dictionary addition
-                : ReadTextureFromFile(id, ref creationTexFormat);
+                : ReadTextureFromFile(id, ref creationTexFormat, shouldSetMipmaps);
     }
 
     public VertexBuffers? GetVertexBuffers(string id)
@@ -139,7 +140,8 @@ public class ResourceManager : IDisposable
     public Texture CreateTexture(
         string id,
         byte[] rawData,
-        Texture.TextureFormat texFormat)
+        Texture.TextureFormat texFormat,
+        bool shouldSetMipmaps = true)
     {
         if (_freeTextureResIds.Count == 0)
         {
@@ -153,7 +155,11 @@ public class ResourceManager : IDisposable
             existingValue = existingRef.Target as Texture;
         }
 
-        Texture texture = new(existingValue?.ResourceId ?? _freeTextureResIds.Pop(), rawData, texFormat);
+        Texture texture = new(
+            existingValue?.ResourceId ?? _freeTextureResIds.Pop(),
+            rawData,
+            texFormat,
+            shouldSetMipmaps);
         _textures[id] = new WeakReference(texture);
 
         if (_freeTextureResIds.Count == 0 && _textures.Count < MAX_SCARCE_RESOURCE_COUNT)
@@ -286,7 +292,7 @@ public class ResourceManager : IDisposable
         }
     }
 
-    public Texture? ReadTextureFromFile(string id, ref Texture.TextureFormat texFormat)
+    public Texture? ReadTextureFromFile(string id, ref Texture.TextureFormat texFormat, bool shouldSetMipmaps = true)
     {
         if (!id.StartsWith('/'))
         {
@@ -328,7 +334,7 @@ public class ResourceManager : IDisposable
             texFormat.Width = image.Width;
             texFormat.Height = image.Height;
 
-            return CreateTexture(id, image.Data, texFormat);
+            return CreateTexture(id, image.Data, texFormat, shouldSetMipmaps);
         }
         catch (IOException ex)
         {

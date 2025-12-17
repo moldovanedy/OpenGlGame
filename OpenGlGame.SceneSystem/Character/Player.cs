@@ -21,9 +21,13 @@ public class Player : GameObject
     private static Player? _instance;
 
     public static Vector3 SpawnPosition { get; } = new(0f, -1.12f, -4.101f);
+    public static Vector3 PlayerSize { get; } = new(0.6f, 1.75f, 0.3f);
 
     public Camera Camera { get; private set; }
     public event Action? NextLevelRequestedEvent;
+    public event Action? ResetGameRequestedEvent;
+
+    public float Health { get; private set; } = 100;
 
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
@@ -37,13 +41,9 @@ public class Player : GameObject
     private Player()
     {
         UpdateEvent += OnUpdate;
+        EnterSceneEvent += OnEnterScene;
 
         _transform = new Transform3D();
-
-        //spawn position for debugging
-        // _transform.Position = new Vector3(20.5f, 3.5f, 20.5f);
-
-        _transform.Position = new Vector3(SpawnPosition.X, SpawnPosition.Y + 0.5f, SpawnPosition.Z);
         AddComponent(_transform);
 
         Camera = new Camera();
@@ -53,7 +53,7 @@ public class Player : GameObject
             _rigidBody = new RigidBody
             {
                 Mass = 70f,
-                BoundingBox = new Aabb(new Vector3(-0.3f, -0.875f, -0.15f), new Vector3(0.6f, 1.75f, 0.3f)),
+                BoundingBox = new Aabb(new Vector3(-0.3f, -0.875f, -0.15f), PlayerSize),
                 RestitutionCoefficient = 0f
             };
             AddComponent(_rigidBody);
@@ -99,10 +99,55 @@ public class Player : GameObject
         _rigidBody.InternalPreviousPosition = _transform.Position;
     }
 
+    public void DecreaseHealth(float amount)
+    {
+        //prevent further decrease
+        if (Health <= 0)
+        {
+            return;
+        }
+
+        Health -= amount;
+
+        if (Health <= 0)
+        {
+            //TODO: add a game over UI screen, then reset
+            ResetGameRequestedEvent?.Invoke();
+        }
+    }
+
 
     private static bool CheckIsOnGround(Aabb playerAabb, Aabb colliderAabb)
     {
         const float EPSILON = 0.01f;
+        bool isRaycastHit = false;
+
+        Vector3[] testPositions =
+        [
+            Instance._transform.Position,
+            Instance._transform.Position + new Vector3(PlayerSize.X / 2f - EPSILON, 0f, 0f),
+            Instance._transform.Position + new Vector3(-PlayerSize.X / 2f + EPSILON, 0f, 0f),
+            Instance._transform.Position + new Vector3(0f, 0f, PlayerSize.Z / 2f - EPSILON),
+            Instance._transform.Position + new Vector3(0f, 0f, -PlayerSize.Z / 2f + EPSILON)
+        ];
+
+        foreach (Vector3 position in testPositions)
+        {
+            PhysicsSystem.RaycastHit? hit = PhysicsSystem.AabbRaycastTest(
+                position,
+                new Vector3(0f, -1f, 0f),
+                colliderAabb);
+
+            if (hit != null)
+            {
+                isRaycastHit = hit.Value.Distance < PlayerSize.Y / 2f + EPSILON;
+            }
+
+            if (isRaycastHit)
+            {
+                break;
+            }
+        }
 
         bool horizontal =
             playerAabb.Start.X + playerAabb.Extents.X > colliderAabb.Start.X &&
@@ -114,7 +159,7 @@ public class Player : GameObject
             playerAabb.Start.Y <= colliderAabb.End.Y + EPSILON && // feet not below the surface
             playerAabb.Start.Y >= colliderAabb.End.Y - EPSILON; // feet touching
 
-        return horizontal && vertical;
+        return (horizontal && vertical) || isRaycastHit;
     }
 
     private float _hotTimeFrontSeconds;
@@ -162,6 +207,15 @@ public class Player : GameObject
         {
             _transform.Position += runningRightVector * (float)deltaTime * speed;
         }
+    }
+
+    private void OnEnterScene()
+    {
+        Health = 100;
+        _transform.Position = new Vector3(SpawnPosition.X, SpawnPosition.Y + 0.5f, SpawnPosition.Z);
+
+        _rigidBody.InternalPosition = _transform.Position;
+        _rigidBody.InternalPreviousPosition = _transform.Position;
     }
 
     private void MovePlayer()

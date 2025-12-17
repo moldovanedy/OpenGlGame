@@ -106,12 +106,10 @@ public class Renderer
     internal const ulong DEFAULT_MATERIAL_STATE_MASK =
         MeshMaterial.RENDER_STATE_MASK
         | MeshMaterial.SHADER_PROGRAM_MASK
+        | MeshMaterial.TEXTURE_ATTACHMENTS_HASH_MASK
         | MeshMaterial.VERTEX_ATTRIBUTE_FORMAT_MASK;
 
     private readonly List<OperationBase> _commands = [];
-
-    //set what's modified initially
-    private ulong _lastFrameModifiedStates = DEFAULT_MATERIAL_STATE_MASK | VERTEX_BUFFER_MASK;
 
     private Matrix4 _viewProjectionMatrix = Matrix4.Identity;
     private PointLightData[] _pointLights = [];
@@ -157,8 +155,7 @@ public class Renderer
             GL.Viewport(0, (int)offsetY, frameData.FbWidth, (int)newHeight);
         }
 
-        ulong lastOrderKey = _lastFrameModifiedStates;
-
+        ulong lastOrderKey = ulong.MaxValue;
         foreach (OperationBase command in _commands)
         {
             if (command is DrawOperation drawOp)
@@ -198,7 +195,7 @@ public class Renderer
                 //backface culling
                 if (!DebuggingData.IS_CAMERA_FREE_ROAM)
                 {
-                    if ((data & 0b1) != 0)
+                    if ((data & MeshMaterial.STATE_BACKFACE_CULLING_MASK) != 0)
                     {
                         GL.Enable(EnableCap.CullFace);
                     }
@@ -208,7 +205,8 @@ public class Renderer
                     }
                 }
 
-                if ((data & 0b10) != 0)
+                //alpha blending
+                if ((data & MeshMaterial.STATE_ALPHA_BLENDING_MASK) != 0)
                 {
                     GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
                     GL.Enable(EnableCap.Blend);
@@ -269,14 +267,11 @@ public class Renderer
                     GL.BindTexture(TextureTarget.Texture2D, drawOp.MeshMaterialDep.Textures[i].GlTextureId);
                 }
             }
-
-            _lastFrameModifiedStates |= MATERIAL_MASK;
         }
 
         if ((thisOrderKey & VERTEX_BUFFER_MASK) != (lastOrderKey & VERTEX_BUFFER_MASK))
         {
             GL.BindVertexArray(drawOp.VertexBuffersDep.GlVao);
-            _lastFrameModifiedStates |= VERTEX_BUFFER_MASK;
         }
     }
 }

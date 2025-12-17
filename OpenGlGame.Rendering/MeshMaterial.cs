@@ -9,6 +9,9 @@ public class MeshMaterial
     internal const int RENDER_STATE_OFFSET = 48;
     internal const ulong RENDER_STATE_MASK = 0x0fUL << 48;
 
+    internal const ulong STATE_BACKFACE_CULLING_MASK = 0b1;
+    internal const ulong STATE_ALPHA_BLENDING_MASK = 0b10;
+
     internal const int SHADER_PROGRAM_OFFSET = 36;
     internal const ulong SHADER_PROGRAM_MASK = 0x0fffUL << 36;
 

@@ -13,7 +13,6 @@ public class Icon : GameObject
     public const float ICON_ATLAS_HEIGHT = 256f;
 
     private readonly MeshMaterial _material;
-    private readonly Transform3D _transform;
 
     public Vector4 Color { get; set; } = Vector4.One;
     public Vector2 TileOffset { get; set; } = Vector2.Zero;
@@ -52,7 +51,8 @@ public class Icon : GameObject
 
         Texture? iconTexAtlas = ResourceManager.Instance.GetOrCreateTexture(
             "/assets/ui/icons.png",
-            new Texture.TextureFormat());
+            new Texture.TextureFormat(),
+            false);
         if (iconTexAtlas == null)
         {
             throw new NullReferenceException("UI icons texture was not found");
@@ -60,12 +60,12 @@ public class Icon : GameObject
 
         _material = CommonMaterials.CreateUiTexAtlasMaterial(iconTexAtlas, true);
 
-        _transform = new Transform3D
+        var transform = new Transform3D
         {
             Position = new Vector3(position.X, position.Y, 0f - 0.0001f * layer),
             Scale = new Vector3(scale.X, scale.Y, 1)
         };
-        AddComponent(_transform);
+        AddComponent(transform);
 
         AddComponent(new MeshRenderer
         {

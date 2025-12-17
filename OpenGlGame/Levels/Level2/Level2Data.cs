@@ -3,6 +3,7 @@ using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.Prefabs.Delimiters;
+using OpenGlGame.SceneSystem.Prefabs.Enemies;
 using OpenGlGame.SceneSystem.Prefabs.Lights;
 using OpenGlGame.SceneSystem.Prefabs.Misc;
 using OpenTK.Mathematics;
@@ -23,6 +24,8 @@ public class Level2Data : ILevelData
 
         AddStage1Delimiters(objects);
         AddStage2Delimiters(objects);
+        AddEnemies(objects);
+
         AddPuzzleCubes(objects);
         AddLights(objects);
 
@@ -225,9 +228,43 @@ public class Level2Data : ILevelData
             new Cube01(
                 new Transform3D
                 {
-                    Position = new Vector3(-35f, -1.5f, 22f),
+                    Position = new Vector3(-34.85f, -1.5f, 17f),
                     Rotation = new Quaternion(0f, 0f, 0f),
                     Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new Cube01(
+                new Transform3D
+                {
+                    Position = new Vector3(-36f, -1.5f, 17f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new Cube01(
+                new Transform3D
+                {
+                    Position = new Vector3(-36f, -0.35f, 17f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                })
+        ]);
+    }
+
+    private static void AddEnemies(List<GameObject> objects)
+    {
+        objects.AddRange([
+            new Laser01Inner(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -1f, 10f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f)
+                }),
+            new Laser01Outer(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -1f, 10f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
                 })
         ]);
     }

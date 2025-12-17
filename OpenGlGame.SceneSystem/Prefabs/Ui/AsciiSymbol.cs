@@ -17,8 +17,8 @@ public class AsciiSymbol : GameObject
 
     public Vector4 Color { get; set; } = Vector4.One;
 
-    private readonly Vector2 _tileOffset;
-    private readonly Vector2 _tileSize;
+    private Vector2 _tileOffset;
+    private Vector2 _tileSize;
 
     private readonly float[] _vertexData =
     [
@@ -53,7 +53,8 @@ public class AsciiSymbol : GameObject
 
         Texture? fontTexAtlas = ResourceManager.Instance.GetOrCreateTexture(
             "/assets/ui/font.png",
-            new Texture.TextureFormat());
+            new Texture.TextureFormat(),
+            false);
         if (fontTexAtlas == null)
         {
             throw new NullReferenceException("UI icons texture was not found");
@@ -74,6 +75,18 @@ public class AsciiSymbol : GameObject
             Material = _material
         });
 
+        SetGlyph(asciiCode);
+    }
+
+    private void OnUpdate(double deltaTime)
+    {
+        _material.SetProperty("color", Color);
+        _material.SetProperty("atlasOffsetAndSize",
+            new Vector4(_tileOffset.X, _tileOffset.Y, _tileSize.X, _tileSize.Y));
+    }
+
+    public void SetGlyph(byte asciiCode)
+    {
         asciiCode = (byte)(asciiCode % 128 - 32);
         int row = asciiCode % 16;
         int column = asciiCode / 16;
@@ -84,13 +97,6 @@ public class AsciiSymbol : GameObject
         _tileSize = new Vector2(
             FONT_GLYPH_SIZE / FONT_ATLAS_WIDTH,
             FONT_GLYPH_SIZE / FONT_ATLAS_HEIGHT);
-    }
-
-    private void OnUpdate(double deltaTime)
-    {
-        _material.SetProperty("color", Color);
-        _material.SetProperty("atlasOffsetAndSize",
-            new Vector4(_tileOffset.X, _tileOffset.Y, _tileSize.X, _tileSize.Y));
     }
 
 

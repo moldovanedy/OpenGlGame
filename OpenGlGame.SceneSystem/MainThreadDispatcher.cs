@@ -16,7 +16,14 @@ public static class MainThreadDispatcher
     {
         while (Queue.TryDequeue(out Action? action))
         {
-            action();
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("EXCEPTION: " + ex);
+            }
         }
     }
 }

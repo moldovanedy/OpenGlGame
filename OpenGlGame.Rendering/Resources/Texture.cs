@@ -56,8 +56,25 @@ public class Texture : ResourceBase, IDisposable
     internal Texture(
         uint resourceId,
         byte[] rawData,
-        TextureFormat texFormat) : base(resourceId)
+        TextureFormat texFormat,
+        bool shouldSetMipmaps = true) : base(resourceId)
     {
+        if (!shouldSetMipmaps)
+        {
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            switch (texFormat.MinFilter)
+            {
+                case TextureMinFilter.LinearMipmapLinear:
+                case TextureMinFilter.LinearMipmapNearest:
+                    texFormat.MinFilter = TextureMinFilter.Linear;
+                    break;
+                case TextureMinFilter.NearestMipmapLinear:
+                case TextureMinFilter.NearestMipmapNearest:
+                    texFormat.MinFilter = TextureMinFilter.Nearest;
+                    break;
+            }
+        }
+
         GL.GenTextures(1, out int texId);
         GlTextureId = texId;
         GL.BindTexture(TextureTarget.Texture2D, texId);
@@ -112,7 +129,11 @@ public class Texture : ResourceBase, IDisposable
             texFormat.Format,
             texFormat.IndividualPixelType,
             rawData);
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+        if (shouldSetMipmaps)
+        {
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        }
     }
 
     public void Dispose()

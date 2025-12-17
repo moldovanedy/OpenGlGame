@@ -70,6 +70,7 @@ public class Application : IDisposable
 
         GL.Enable(EnableCap.Multisample);
         GL.Enable(EnableCap.DepthTest);
+        GL.Enable(EnableCap.FramebufferSrgb);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         GenerateRuntimeAssets();
@@ -77,6 +78,12 @@ public class Application : IDisposable
 
         Player.Instance.EnterScene();
         Player.Instance.NextLevelRequestedEvent += () => { SetLevel(++_currentLevelIndex); };
+        Player.Instance.ResetGameRequestedEvent += () =>
+        {
+            Player.Instance.ExitScene();
+            Player.Instance.EnterScene();
+            SetLevel(1);
+        };
 
         _physicsUpdateTimer = new Timer(PhysicsSystem.PHYSICS_TICK_SECONDS * 1000.0);
         _physicsUpdateTimer.Elapsed += PhysicsUpdate;
@@ -104,8 +111,6 @@ public class Application : IDisposable
             {
                 _windowRef.CursorState = CursorState.Grabbed;
             }
-
-            GL.Enable(EnableCap.FramebufferSrgb);
         }
         //main menu
         else
@@ -116,8 +121,6 @@ public class Application : IDisposable
             {
                 _windowRef.CursorState = CursorState.Normal;
             }
-
-            GL.Disable(EnableCap.FramebufferSrgb);
         }
 
         SceneManager.Instance.SetLevel(combined);
@@ -156,7 +159,7 @@ public class Application : IDisposable
         }
 
         //useful for debugging
-        // _sceneManager.PhysicsUpdate();
+        // SceneManager.PhysicsUpdate();
 
         Renderer.RenderFrameData frameData = new(
             window.FramebufferSize.X,
@@ -165,8 +168,8 @@ public class Application : IDisposable
             e.Time,
             GetNormalizedMouseCoords(),
             _pressedMouseButton);
-        SceneManager.Instance.Update(ref frameData);
 
+        SceneManager.Instance.Update(ref frameData);
         window.SwapBuffers();
     }
 
@@ -177,7 +180,7 @@ public class Application : IDisposable
             return;
         }
 
-        SceneManager.Instance.PhysicsUpdate();
+        SceneManager.PhysicsUpdate();
     }
 
     internal void FocusChanged(FocusedChangedEventArgs e)

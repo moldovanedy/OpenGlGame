@@ -25,7 +25,7 @@ public class SceneManager
     public Vector2 NormalizedMousePosition { get; private set; }
     public MouseButton? CurrentlyPressedMouseButton { get; private set; }
 
-    private GameObject[] _currentGameObjects = [];
+    private readonly List<GameObject> _currentGameObjects = [];
     private PointLight[] _cachedPointLights = [];
     private readonly Renderer _systemRenderer = new();
 
@@ -35,50 +35,43 @@ public class SceneManager
 
     public void SetLevel(GameObject[] gameObjects)
     {
-        foreach (GameObject gameObject in _currentGameObjects)
+        MainThreadDispatcher.Enqueue(() =>
         {
-            gameObject.ExitScene();
-            gameObject.SystemRenderer = null;
-        }
-
-        _currentGameObjects = gameObjects;
-        foreach (GameObject gameObject in gameObjects)
-        {
-            gameObject.EnterScene();
-            gameObject.SystemRenderer = _systemRenderer;
-        }
-
-        // List<Renderer.PointLightData> pointLightsData = [];
-        // foreach (GameObject gameObject in gameObjects)
-        // {
-        //     IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
-        //     if (pointLight is PointLight light)
-        //     {
-        //         pointLightsData.Add(light.LightData);
-        //     }
-        // }
-        //
-        // _systemRenderer.UpdatePointLights(pointLightsData.ToArray());
-
-        List<PointLight> pointLights = [];
-        foreach (GameObject gameObject in gameObjects)
-        {
-            IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
-            if (pointLight is PointLight light)
+            foreach (GameObject gameObject in _currentGameObjects)
             {
-                pointLights.Add(light);
+                gameObject.ExitScene();
+                gameObject.SystemRenderer = null;
             }
-        }
 
-        _cachedPointLights = pointLights.ToArray();
+            _currentGameObjects.Clear();
+            _currentGameObjects.AddRange(gameObjects);
 
-        PhysicsSystem.Instance.RecreatePhysicsComponentsLists(gameObjects);
-        PhysicsSystem.Instance.RecreateInteractablesList(gameObjects);
+            foreach (GameObject gameObject in gameObjects)
+            {
+                gameObject.EnterScene();
+                gameObject.SystemRenderer = _systemRenderer;
+            }
+
+            List<PointLight> pointLights = [];
+            foreach (GameObject gameObject in gameObjects)
+            {
+                IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
+                if (pointLight is PointLight light)
+                {
+                    pointLights.Add(light);
+                }
+            }
+
+            _cachedPointLights = pointLights.ToArray();
+
+            PhysicsSystem.Instance.RecreatePhysicsComponentsLists(gameObjects);
+            PhysicsSystem.Instance.RecreateInteractablesList(gameObjects);
+        });
     }
 
     public void Update(ref Renderer.RenderFrameData frameData)
     {
-        if (_currentGameObjects.Length == 0)
+        if (_currentGameObjects.Count == 0)
         {
             return;
         }
@@ -101,7 +94,7 @@ public class SceneManager
         _systemRenderer.Render(ref frameData);
     }
 
-    public void PhysicsUpdate()
+    public static void PhysicsUpdate()
     {
         PhysicsSystem.Instance.PhysicsUpdate();
         Player.Instance.PhysicsUpdate();

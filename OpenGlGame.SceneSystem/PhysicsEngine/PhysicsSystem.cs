@@ -108,6 +108,10 @@ public class PhysicsSystem
             if (rigidBody.IsAffectedByGravity)
             {
                 ApplyGravity(rigidBody);
+            }
+
+            if (rigidBody.Owner != Player.Instance)
+            {
                 ApplyFriction(rigidBody);
             }
         }
@@ -315,7 +319,7 @@ public class PhysicsSystem
     private static void ApplyFriction(RigidBody rigidBody)
     {
         Vector3 normalVector = new(0f, 1f, 0f);
-        const float COEFFICIENT_OF_FRICTION = 0.5f;
+        const float COEFFICIENT_OF_FRICTION = 0.4f;
 
         Vector3 tangent =
             rigidBody.DerivedVelocity
@@ -326,8 +330,8 @@ public class PhysicsSystem
         }
 
         Vector3 tangentDir = tangent / tangent.Length;
-        float normalForce = rigidBody.Mass * -GravitationalAccelerationVector.Y * (float)PHYSICS_TICK_SECONDS;
-        float frictionMagnitude = COEFFICIENT_OF_FRICTION * normalForce;
+        float normalForce = rigidBody.Mass * -GravitationalAccelerationVector.Y;
+        float frictionMagnitude = COEFFICIENT_OF_FRICTION * normalForce * (float)PHYSICS_TICK_SECONDS * 5f;
 
         rigidBody.AddForce(-tangentDir * frictionMagnitude);
     }
@@ -607,7 +611,7 @@ public class PhysicsSystem
 
         // Small slop prevents jitter from tiny penetrations; percent controls how aggressively we correct.
         const float SLOP = 0.001f;
-        const float PERCENT = 1.2f;
+        const float PERCENT = 0.8f;
 
         float correctedPenetration = MathF.Max(penetration - SLOP, 0f);
         Vector3 correction = correctedPenetration / invMassSum * PERCENT * normal;
@@ -632,13 +636,10 @@ public class PhysicsSystem
         float velAlongNormal = Vector3.Dot(relativeVelocity, normal);
 
         // If they're separating along the normal, don't apply impulse (positional correction already handled overlap).
-        // EDIT: applying this makes the player unable to move on top of rigid bodies (it makes it seem that it's not
-        // on the ground); this is most likely caused by how the ground check is done
-
-        // if (velAlongNormal > 0f)
-        // {
-        //     return;
-        // }
+        if (velAlongNormal > 0f)
+        {
+            return;
+        }
 
         float restitution = MathF.Min(rigidBody1.RestitutionCoefficient, rigidBody2.RestitutionCoefficient);
 
