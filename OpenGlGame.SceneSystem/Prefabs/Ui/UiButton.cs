@@ -61,7 +61,8 @@ public class UiButton : GameObject
         AddComponent(new MeshRenderer
         {
             VertBuffers = buffers,
-            Material = _material
+            Material = _material,
+            IsUi = true
         });
     }
 

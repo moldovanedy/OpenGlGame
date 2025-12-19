@@ -249,7 +249,7 @@ public class Level2Data : ILevelData
         ]);
     }
 
-    private static void AddEnemies(List<GameObject> objects)
+    private void AddEnemies(List<GameObject> objects)
     {
         objects.AddRange([
             new Laser01Inner(
@@ -265,8 +265,91 @@ public class Level2Data : ILevelData
                     Position = new Vector3(0f, -1f, 10f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+            new Laser01Inner(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, 0.5f, 12.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f)
+                }),
+            new Laser01Outer(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, 0.5f, 12.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+
+            new Laser01Inner(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -0.5f, 15.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f)
+                }),
+            new Laser01Outer(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -0.5f, 15.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+            new Laser01Inner(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -0.75f, 16.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f)
+                }),
+            new Laser01Outer(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -0.75f, 16.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
                 })
         ]);
+
+        GameObject[] firstMovingLaser =
+        [
+            new Laser01Inner(
+                new Transform3D
+                {
+                    Position = new Vector3(Level2Callbacks.LASER_X1_LOWER_LIMIT, -0.5f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(0.3f, 6f, 0.3f)
+                }),
+            new Laser01Outer(
+                new Transform3D
+                {
+                    Position = new Vector3(Level2Callbacks.LASER_X1_LOWER_LIMIT, -0.5f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(0.3f, 6f, 0.3f) * new Vector3(2f, 1f, 2f)
+                })
+        ];
+
+        GameObject[] secondMovingLaser =
+        [
+            new Laser01Inner(
+                new Transform3D
+                {
+                    Position = new Vector3(Level2Callbacks.LASER_X2_LOWER_LIMIT, -0.75f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(0.3f, 6f, 0.3f)
+                }),
+            new Laser01Outer(
+                new Transform3D
+                {
+                    Position = new Vector3(Level2Callbacks.LASER_X2_LOWER_LIMIT, -0.75f, 21.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
+                    Scale = new Vector3(0.3f, 6f, 0.3f) * new Vector3(2f, 1f, 2f)
+                })
+        ];
+
+        objects.AddRange(firstMovingLaser);
+        objects.AddRange(secondMovingLaser);
+        _callbacks.SetMovingLasers(firstMovingLaser, secondMovingLaser);
     }
 
     private void AddLights(List<GameObject> objects)

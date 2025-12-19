@@ -40,6 +40,7 @@ public class Application : IDisposable
     private int _windowedHeight = 600;
     private int _fbWidth = (int)(600f * Renderer.ASPECT_RATIO);
     private int _fbHeight = 600;
+
     private bool _isPaused;
 
     public void Dispose()
@@ -78,11 +79,26 @@ public class Application : IDisposable
 
         Player.Instance.EnterScene();
         Player.Instance.NextLevelRequestedEvent += () => { SetLevel(++_currentLevelIndex); };
-        Player.Instance.ResetGameRequestedEvent += () =>
+        Player.Instance.PlayerDeadEvent += () =>
         {
-            Player.Instance.ExitScene();
-            Player.Instance.EnterScene();
-            SetLevel(1);
+            GameOverScreen gameOverScreen = new();
+            gameOverScreen.RetryRequestedEvent += () =>
+            {
+                Player.Instance.ExitScene();
+                Player.Instance.EnterScene();
+                SetLevel(1);
+            };
+
+            GameObject[] gameOverUiObj = gameOverScreen.LoadAndGetGameObjects();
+            foreach (GameObject uiObj in gameOverUiObj)
+            {
+                SceneManager.Instance.AddObject(uiObj);
+            }
+
+            if (_windowRef != null)
+            {
+                _windowRef.CursorState = CursorState.Normal;
+            }
         };
 
         _physicsUpdateTimer = new Timer(PhysicsSystem.PHYSICS_TICK_SECONDS * 1000.0);
@@ -315,6 +331,11 @@ public class Application : IDisposable
 
     internal void OnMouseMove(MouseMoveEventArgs e)
     {
+        if (_isPaused)
+        {
+            return;
+        }
+
         if (_isFirstMouse)
         {
             _lastMouseX = e.X;

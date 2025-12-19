@@ -25,9 +25,10 @@ public class Player : GameObject
 
     public Camera Camera { get; private set; }
     public event Action? NextLevelRequestedEvent;
-    public event Action? ResetGameRequestedEvent;
+    public event Action? PlayerDeadEvent;
 
     public float Health { get; private set; } = 100;
+    public bool IsDead { get; private set; }
 
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
@@ -67,22 +68,45 @@ public class Player : GameObject
             return;
         }
 
+        if (IsDead)
+        {
+            //stop player
+            _rigidBody.InternalPosition = _transform.Position;
+            _rigidBody.InternalPreviousPosition = _transform.Position;
+            return;
+        }
+
         MovePlayer();
         _isOnGround = CheckIsOnGround();
     }
 
     public void InputMovementChanged(Camera.CameraMovement currentState)
     {
+        if (IsDead)
+        {
+            return;
+        }
+
         _currentMovingDirections = currentState;
     }
 
     public void InputJumpChanged(bool isPressingJump)
     {
+        if (IsDead)
+        {
+            return;
+        }
+
         _isJumpPressed = isPressingJump;
     }
 
     public void InputInteractButtonChanged(bool isPressingInteractButton)
     {
+        if (IsDead)
+        {
+            return;
+        }
+
         _isInteractButtonPressed = isPressingInteractButton;
     }
 
@@ -111,8 +135,8 @@ public class Player : GameObject
 
         if (Health <= 0)
         {
-            //TODO: add a game over UI screen, then reset
-            ResetGameRequestedEvent?.Invoke();
+            IsDead = true;
+            PlayerDeadEvent?.Invoke();
         }
     }
 
@@ -211,11 +235,20 @@ public class Player : GameObject
 
     private void OnEnterScene()
     {
+        IsDead = false;
         Health = 100;
         _transform.Position = new Vector3(SpawnPosition.X, SpawnPosition.Y + 0.5f, SpawnPosition.Z);
 
         _rigidBody.InternalPosition = _transform.Position;
         _rigidBody.InternalPreviousPosition = _transform.Position;
+
+        _hotTimeFrontSeconds = 0f;
+        _hotTimeBackSeconds = 0f;
+        _hotTimeLeftSeconds = 0f;
+        _hotTimeRightSeconds = 0f;
+        _currentMovingDirections = Camera.CameraMovement.None;
+
+        Camera.ResetCameraOrientation();
     }
 
     private void MovePlayer()

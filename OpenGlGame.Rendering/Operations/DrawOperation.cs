@@ -10,21 +10,25 @@ public class DrawOperation : OperationBase
     public VertexBuffers VertexBuffersDep { get; }
     public MeshMaterial MeshMaterialDep { get; }
     public Matrix4 ModelMatrix { get; }
+    public bool IsUi { get; }
 
     public DrawOperation(
         VertexBuffers vertexBuffersDep,
         MeshMaterial material,
-        Matrix4 modelMatrix)
+        Matrix4 modelMatrix,
+        bool isUi)
     {
         VertexBuffersDep = vertexBuffersDep;
         MeshMaterialDep = material;
         ModelMatrix = modelMatrix;
+        IsUi = isUi;
     }
 
     public override ulong ComputeOrderKey()
     {
         return
-            MeshMaterialDep.OrderKey
+            ((IsUi ? 1UL : 0UL) << Renderer.RENDER_TARGET_OFFSET)
+            | MeshMaterialDep.OrderKey
             | ((ulong)VertexBuffersDep.ResourceId << Renderer.VERTEX_BUFFER_OFFSET);
     }
 

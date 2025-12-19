@@ -17,6 +17,8 @@ public class MeshRenderer : IGameObjectComponent
 
     public bool ShouldDrawOutline { get; set; }
 
+    public bool IsUi { get; set; }
+
     private Transform3D? _ownerTransform;
 
     public void EnterScene()
@@ -42,7 +44,8 @@ public class MeshRenderer : IGameObjectComponent
                 new DrawOperation(
                     VertBuffers,
                     Material,
-                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity));
+                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
+                    IsUi));
         }
         else
         {
@@ -50,7 +53,8 @@ public class MeshRenderer : IGameObjectComponent
                 new DrawOperation(
                     VertBuffers,
                     Material,
-                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity));
+                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
+                    IsUi));
         }
 
         ShouldDrawOutline = false;

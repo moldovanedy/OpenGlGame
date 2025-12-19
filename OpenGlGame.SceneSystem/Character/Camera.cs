@@ -34,6 +34,12 @@ public class Camera
         UpdateCameraVectors();
     }
 
+    internal void ResetCameraOrientation()
+    {
+        _yaw = 90.0f;
+        _pitch = 0.0f;
+    }
+
     internal Matrix4 GetViewProjectionMatrix()
     {
         Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
@@ -58,6 +64,11 @@ public class Camera
 
     public void InputLookDirectionChanged(float xOffset, float yOffset)
     {
+        if (Player.Instance.IsDead)
+        {
+            return;
+        }
+
         xOffset *= MOUSE_SENSITIVITY;
         yOffset *= MOUSE_SENSITIVITY;
 

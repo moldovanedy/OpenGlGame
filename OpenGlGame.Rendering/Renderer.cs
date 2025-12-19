@@ -82,21 +82,6 @@ public class Renderer
     internal const int RENDER_TARGET_OFFSET = 56;
     internal const ulong RENDER_TARGET_MASK = 0x0fUL << 56;
 
-    // internal const int SHADER_PROGRAM_OFFSET = 44;
-    // internal const ulong SHADER_PROGRAM_MASK = 0x0fffUL << 44;
-    //
-    // internal const int RENDER_STATE_OFFSET = 40;
-    // internal const ulong RENDER_STATE_MASK = 0x0fUL << 40;
-    //
-    // internal const int TEXTURE_ATTACHMENT_OFFSET = 32;
-    // internal const ulong TEXTURE_ATTACHMENT_MASK = 0xffUL << 32;
-    //
-    // internal const int VERTEX_ATTRIBUTE_FORMAT_OFFSET = 24;
-    // internal const ulong VERTEX_ATTRIBUTE_FORMAT_MASK = 0xffUL << 24;
-    //
-    // internal const int UNIFORM_BUFFER_OFFSET = 12;
-    // internal const ulong UNIFORM_BUFFER_MASK = 0x0fffUL << 12;
-
     internal const int MATERIAL_OFFSET = 12;
     internal const ulong MATERIAL_MASK = 0xff_ff_ff_ff_ffUL << 12;
 

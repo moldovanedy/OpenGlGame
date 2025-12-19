@@ -58,7 +58,7 @@ public class Icon : GameObject
             throw new NullReferenceException("UI icons texture was not found");
         }
 
-        _material = CommonMaterials.CreateUiTexAtlasMaterial(iconTexAtlas, true);
+        _material = CommonMaterials.CreateUiTexAtlasMaterial(iconTexAtlas, true, false);
 
         var transform = new Transform3D
         {
@@ -70,7 +70,8 @@ public class Icon : GameObject
         AddComponent(new MeshRenderer
         {
             VertBuffers = buffers,
-            Material = _material
+            Material = _material,
+            IsUi = true
         });
     }
 

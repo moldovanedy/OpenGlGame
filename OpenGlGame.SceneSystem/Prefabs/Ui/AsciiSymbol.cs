@@ -60,7 +60,7 @@ public class AsciiSymbol : GameObject
             throw new NullReferenceException("UI icons texture was not found");
         }
 
-        _material = CommonMaterials.CreateUiTexAtlasMaterial(fontTexAtlas, true);
+        _material = CommonMaterials.CreateUiTexAtlasMaterial(fontTexAtlas, true, false);
 
         var transform = new Transform3D
         {
@@ -72,7 +72,8 @@ public class AsciiSymbol : GameObject
         AddComponent(new MeshRenderer
         {
             VertBuffers = buffers,
-            Material = _material
+            Material = _material,
+            IsUi = true
         });
 
         SetGlyph(asciiCode);
@@ -105,6 +106,7 @@ public class AsciiSymbol : GameObject
         Vector2 position,
         Vector2 glyphSize,
         Vector4? color = null,
+        float kerning = 1.3f,
         uint layer = 0)
     {
         AsciiSymbol[] symbols = new AsciiSymbol[text.Length];
@@ -126,7 +128,7 @@ public class AsciiSymbol : GameObject
             };
 
             //apply some kerning
-            position += new Vector2(glyphSize.X / 1.3f, 0f);
+            position += new Vector2(glyphSize.X / kerning, 0f);
         }
 
         return symbols;

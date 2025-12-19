@@ -10,16 +10,22 @@ namespace OpenGlGame.Levels.Ui;
 
 public class MainMenu : ILevelData
 {
+    public static Vector4 NormalButtonCol { get; } = new(0x20 / 255f, 0x20 / 255f, 0x20 / 255f, 1.0f);
+    public static Vector4 NormalButtonHoverCol { get; } = new(0x30 / 255f, 0x30 / 255f, 0x30 / 255f, 1.0f);
+
+    public static Vector4 DangerButtonCol { get; } = new(0x64 / 255f, 0.0f, 0.0f, 1.0f);
+    public static Vector4 DangerButtonHoverCol { get; } = new(0x80 / 255f, 0.0f, 0.0f, 1.0f);
+
     public GameObject[] LoadAndGetGameObjects()
     {
         List<GameObject> objects = [];
         objects.AddRange([
             //temporary background
-            new UiButton(
+            new UiRect(
                 new Vector2(-1.0f, -1.0f),
                 new Vector2(2f, 2f))
             {
-                NormalColor = new Vector4(0x08 / 255f, 0x08 / 255f, 0x08 / 255f, 1.0f)
+                Color = new Vector4(0x08 / 255f, 0x08 / 255f, 0x08 / 255f, 1.0f)
             },
 
             new UiButton(
@@ -27,8 +33,8 @@ public class MainMenu : ILevelData
                 new Vector2(0.6f, 0.25f),
                 1)
             {
-                NormalColor = new Vector4(0x20 / 255f, 0x20 / 255f, 0x20 / 255f, 1.0f),
-                HoverColor = new Vector4(0x30 / 255f, 0x30 / 255f, 0x30 / 255f, 1.0f),
+                NormalColor = NormalButtonCol,
+                HoverColor = NormalButtonHoverCol,
                 OnClick = () => { Player.Instance.RequestLoadingNextLevel(new Vector3(1.74f, 0f, -4f)); }
             },
             new UiButton(
@@ -36,8 +42,8 @@ public class MainMenu : ILevelData
                 new Vector2(0.6f, 0.25f),
                 1)
             {
-                NormalColor = new Vector4(0x64 / 255f, 0.0f, 0.0f, 1.0f),
-                HoverColor = new Vector4(0x80 / 255f, 0.0f, 0.0f, 1.0f),
+                NormalColor = DangerButtonCol,
+                HoverColor = DangerButtonHoverCol,
                 OnClick = () => { Environment.Exit(0); }
             }
         ]);
@@ -47,15 +53,13 @@ public class MainMenu : ILevelData
                 "Play!",
                 new Vector2(0.39f, -0.3f),
                 new Vector2(0.05f, 0.05f * Renderer.ASPECT_RATIO),
-                null,
-                2));
+                layer: 2));
         objects.AddRange(
             AsciiSymbol.CreateText(
                 "Exit",
                 new Vector2(0.39f, -0.7f),
                 new Vector2(0.05f, 0.05f * Renderer.ASPECT_RATIO),
-                null,
-                2));
+                layer: 2));
 
         return objects.ToArray();
     }

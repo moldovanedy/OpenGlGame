@@ -30,7 +30,7 @@ public class Laser01Outer : GameObject
 
         AddComponent(
             new Enemy(
-                50f,
+                150f,
                 new Aabb(new Vector3(-0.1f, -0.5f, -0.1f), new Vector3(0.2f, 1f, 0.2f))));
 
         VertexBuffers? buffers =

@@ -69,6 +69,29 @@ public class SceneManager
         });
     }
 
+    public void AddObject(GameObject gameObject)
+    {
+        MainThreadDispatcher.Enqueue(() =>
+        {
+            gameObject.EnterScene();
+            gameObject.SystemRenderer = _systemRenderer;
+
+            _currentGameObjects.Add(gameObject);
+        });
+    }
+
+    public void RemoveObject(GameObject gameObject)
+    {
+        MainThreadDispatcher.Enqueue(() =>
+        {
+            gameObject.ExitScene();
+            gameObject.SystemRenderer = null;
+
+            _currentGameObjects.Remove(gameObject);
+        });
+    }
+
+
     public void Update(ref Renderer.RenderFrameData frameData)
     {
         if (_currentGameObjects.Count == 0)

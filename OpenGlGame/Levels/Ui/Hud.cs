@@ -16,6 +16,10 @@ public class Hud : ILevelData
     private AsciiSymbol[]? _healthGlyphs;
     private int _lastNormalizedHealth = 100;
 
+    private UiRect[]? _damageIndicators;
+    private float _damageIndicatorTimer;
+    private const float DAMAGE_TIMER_MAX = 0.5f;
+
     public GameObject[] LoadAndGetGameObjects()
     {
         int normalizedHealth = (int)Math.Ceiling(Player.Instance.Health);
@@ -41,7 +45,45 @@ public class Hud : ILevelData
             new Vector2(-0.91f, -0.96f),
             new Vector2(0.05f, 0.05f * Renderer.ASPECT_RATIO),
             normalizedHealth > 20 ? MainColor : LowHealthColor);
+
+        _damageIndicators =
+        [
+            new UiRect(
+                new Vector2(-0.12f, 0.1f * Renderer.ASPECT_RATIO),
+                new Vector2(0.24f, 0.02f * Renderer.ASPECT_RATIO),
+                true,
+                2)
+            {
+                Color = Vector4.Zero
+            },
+            new UiRect(
+                new Vector2(0.1f, -0.1f * Renderer.ASPECT_RATIO),
+                new Vector2(0.02f, 0.2f * Renderer.ASPECT_RATIO),
+                true,
+                2)
+            {
+                Color = Vector4.Zero
+            },
+            new UiRect(
+                new Vector2(-0.1f, -0.1f * Renderer.ASPECT_RATIO),
+                new Vector2(0.22f, 0.02f * Renderer.ASPECT_RATIO),
+                true,
+                2)
+            {
+                Color = Vector4.Zero
+            },
+            new UiRect(
+                new Vector2(-0.12f, -0.1f * Renderer.ASPECT_RATIO),
+                new Vector2(0.02f, 0.2f * Renderer.ASPECT_RATIO),
+                true,
+                2)
+            {
+                Color = Vector4.Zero
+            }
+        ];
+
         objects.AddRange(_healthGlyphs);
+        objects.AddRange(_damageIndicators);
 
         objects[0].UpdateEvent += OnUpdate;
         return objects.ToArray();
@@ -49,30 +91,56 @@ public class Hud : ILevelData
 
     private void OnUpdate(double deltaTime)
     {
-        int normalizedHealth = (int)Math.Ceiling(Player.Instance.Health);
+        if (_damageIndicatorTimer > 0.0f)
+        {
+            _damageIndicatorTimer -= (float)deltaTime;
+        }
+        else
+        {
+            _damageIndicatorTimer = 0f;
+        }
 
-        if (_lastNormalizedHealth == normalizedHealth || _healthGlyphs == null)
+        MainThreadDispatcher.Enqueue(() =>
+        {
+            //damage indicator
+            if (_damageIndicators != null)
+            {
+                foreach (UiRect indicator in _damageIndicators)
+                {
+                    float alpha = _damageIndicatorTimer * (1f / DAMAGE_TIMER_MAX);
+                    indicator.Color = new Vector4(LowHealthColor.X, LowHealthColor.Y, LowHealthColor.Z, alpha * 0.5f);
+                }
+            }
+        });
+
+        int normalizedHealth = (int)Math.Ceiling(Player.Instance.Health);
+        if (_lastNormalizedHealth == normalizedHealth)
         {
             return;
         }
 
         _lastNormalizedHealth = normalizedHealth;
+        _damageIndicatorTimer = DAMAGE_TIMER_MAX;
 
         MainThreadDispatcher.Enqueue(() =>
         {
-            string healthString = _lastNormalizedHealth.ToString();
-            if (healthString.Length < 3)
+            //health indicator
+            if (_healthGlyphs != null)
             {
-                for (int i = healthString.Length; i < 3; i++)
+                string healthString = _lastNormalizedHealth.ToString();
+                if (healthString.Length < 3)
                 {
-                    healthString += ' ';
+                    for (int i = healthString.Length; i < 3; i++)
+                    {
+                        healthString += ' ';
+                    }
                 }
-            }
 
-            for (int i = 0; i < _healthGlyphs.Length; i++)
-            {
-                _healthGlyphs[i].SetGlyph((byte)healthString[i]);
-                _healthGlyphs[i].Color = _lastNormalizedHealth > 20 ? MainColor : LowHealthColor;
+                for (int i = 0; i < _healthGlyphs.Length; i++)
+                {
+                    _healthGlyphs[i].SetGlyph((byte)healthString[i]);
+                    _healthGlyphs[i].Color = _lastNormalizedHealth > 20 ? MainColor : LowHealthColor;
+                }
             }
         });
     }
