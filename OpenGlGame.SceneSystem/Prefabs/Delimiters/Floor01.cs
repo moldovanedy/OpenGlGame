@@ -19,10 +19,18 @@ public class Floor01 : GameObject
             new Texture.TextureFormat());
         if (diffuseTex == null)
         {
-            throw new NullReferenceException("Wall texture was not found");
+            throw new NullReferenceException("Wall diffuse texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseTiledLitMaterial(diffuseTex);
+        Texture? specularTex = ResourceManager.Instance.GetOrCreateTexture(
+            "/assets/models/floor_01/tex_specular01.png",
+            new Texture.TextureFormat());
+        if (specularTex == null)
+        {
+            throw new NullReferenceException("Wall specular texture was not found");
+        }
+
+        _material = CommonMaterials.CreateDiffuseSpecularTiledLitMaterial(diffuseTex, specularTex);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 

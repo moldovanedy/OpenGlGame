@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OpenGlGame.Levels.Ui;
 using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Components;
@@ -21,6 +22,8 @@ public class Level1Data : ILevelData
         GameObject[] transitionRoom = new TransitionRoom(true).LoadAndGetGameObjects();
         TransitionRoom.OffsetObjects(transitionRoom, new Vector3(18.0f, 4.25f, 27.101f));
         objects.AddRange(transitionRoom);
+
+        objects.AddRange(new PlayInstructions().LoadAndGetGameObjects());
         return objects.ToArray();
     }
 

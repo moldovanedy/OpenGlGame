@@ -222,6 +222,9 @@ public class Application : IDisposable
         {
             default:
                 return;
+            case Keys.Escape:
+                Environment.Exit(0);
+                break;
             case Keys.F11:
                 _isFullscreenToggleRequested = true;
                 break;

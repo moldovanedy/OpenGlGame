@@ -166,6 +166,39 @@ public static class CommonMaterials
             hasBackfaceCulling);
     }
 
+    public static MeshMaterial CreateDiffuseSpecularTiledLitMaterial(
+        Texture? diffuseTex = null,
+        Texture? specularTex = null,
+        bool hasAlphaBlending = false,
+        bool hasBackfaceCulling = true)
+    {
+        if (diffuseTex == null)
+        {
+            diffuseTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (diffuseTex == null)
+            {
+                throw new NullReferenceException("DiffuseSpecularTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        if (specularTex == null)
+        {
+            specularTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (specularTex == null)
+            {
+                throw new NullReferenceException("DiffuseSpecularTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/diffuse_spec_tiled_lit")
+            ?? throw new Exception("DiffuseSpecularTiledLitMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.DiffuseTextureMesh,
+            [diffuseTex, specularTex],
+            hasAlphaBlending,
+            hasBackfaceCulling);
+    }
+
     public static MeshMaterial CreateUiPolygonMaterial(
         bool hasAlphaBlending = false,
         bool hasBackfaceCulling = true)

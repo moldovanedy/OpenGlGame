@@ -266,6 +266,14 @@ public class Level2Data : ILevelData
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
                 }),
+            new LaserSupport01(
+                new Transform3D
+                {
+                    Position = new Vector3(-1.9f, -1f, 10f),
+                    Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(1f)
+                }),
+
             new Laser01Inner(
                 new Transform3D
                 {
@@ -279,6 +287,13 @@ public class Level2Data : ILevelData
                     Position = new Vector3(0f, 0.5f, 12.5f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+            new LaserSupport01(
+                new Transform3D
+                {
+                    Position = new Vector3(-1.9f, 0.5f, 12.5f),
+                    Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(1f)
                 }),
 
             new Laser01Inner(
@@ -295,6 +310,14 @@ public class Level2Data : ILevelData
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
                 }),
+            new LaserSupport01(
+                new Transform3D
+                {
+                    Position = new Vector3(1.9f, -0.5f, 15.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1f)
+                }),
+
             new Laser01Inner(
                 new Transform3D
                 {
@@ -308,6 +331,33 @@ public class Level2Data : ILevelData
                     Position = new Vector3(0f, -0.75f, 16.0f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
                     Scale = new Vector3(0.3f, 4f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+            new LaserSupport01(
+                new Transform3D
+                {
+                    Position = new Vector3(1.9f, -0.75f, 16.0f),
+                    Rotation = new Quaternion(float.DegreesToRadians(180f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1f)
+                })
+        ]);
+
+        //laser rails
+        objects.AddRange([
+            new LaserRail01(
+                new Transform3D
+                {
+                    Position = new Vector3(-14f, -0.5f, 24.01f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(0f),
+                        float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1f, 4.2f, 1f)
+                }),
+            new LaserRail01(
+                new Transform3D
+                {
+                    Position = new Vector3(-16f, -0.75f, 17.99f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(0f),
+                        float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1f, 4.2f, 1f)
                 })
         ]);
 
@@ -326,6 +376,13 @@ public class Level2Data : ILevelData
                     Position = new Vector3(Level2Callbacks.LASER_X1_LOWER_LIMIT, -0.5f, 21.0f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(0.3f, 6f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+            new LaserSupport01(
+                new Transform3D
+                {
+                    Position = new Vector3(Level2Callbacks.LASER_X1_LOWER_LIMIT, -0.5f, 23.9f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), float.DegreesToRadians(90f), 0f),
+                    Scale = new Vector3(1f)
                 })
         ];
 
@@ -344,6 +401,13 @@ public class Level2Data : ILevelData
                     Position = new Vector3(Level2Callbacks.LASER_X2_LOWER_LIMIT, -0.75f, 21.0f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, 0f),
                     Scale = new Vector3(0.3f, 6f, 0.3f) * new Vector3(2f, 1f, 2f)
+                }),
+            new LaserSupport01(
+                new Transform3D
+                {
+                    Position = new Vector3(Level2Callbacks.LASER_X2_LOWER_LIMIT, -0.75f, 18.1f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(-90f), 0f),
+                    Scale = new Vector3(1f)
                 })
         ];
 
