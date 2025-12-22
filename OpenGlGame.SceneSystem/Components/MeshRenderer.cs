@@ -15,8 +15,6 @@ public class MeshRenderer : IGameObjectComponent
 
     public VertexBuffers? VertBuffers { get; set; }
 
-    public bool ShouldDrawOutline { get; set; }
-
     public bool IsUi { get; set; }
 
     private Transform3D? _ownerTransform;
@@ -37,26 +35,11 @@ public class MeshRenderer : IGameObjectComponent
             return;
         }
 
-        if (ShouldDrawOutline)
-        {
-            //TODO: add stencil buffer operations for drawing the outline
-            Owner?.SystemRenderer?.AddCommand(
-                new DrawOperation(
-                    VertBuffers,
-                    Material,
-                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
-                    IsUi));
-        }
-        else
-        {
-            Owner?.SystemRenderer?.AddCommand(
-                new DrawOperation(
-                    VertBuffers,
-                    Material,
-                    _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
-                    IsUi));
-        }
-
-        ShouldDrawOutline = false;
+        Owner?.SystemRenderer?.AddCommand(
+            new DrawOperation(
+                VertBuffers,
+                Material,
+                _ownerTransform?.GetModelMatrix() ?? Matrix4.Identity,
+                IsUi));
     }
 }

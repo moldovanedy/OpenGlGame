@@ -10,7 +10,7 @@ namespace OpenGlGame.SceneSystem.Prefabs.Delimiters;
 public class Wall03 : GameObject
 {
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private MeshMaterial _material;
+    private readonly MeshMaterial _material;
 
     public Wall03(Transform3D transform, bool hasAlpha = false, bool hasBackfaceCulling = true)
     {
@@ -20,10 +20,18 @@ public class Wall03 : GameObject
             new Texture.TextureFormat());
         if (diffuseTex == null)
         {
-            throw new NullReferenceException("Wall texture was not found");
+            throw new NullReferenceException("Wall diffuse texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseTiledLitMaterial(diffuseTex, hasAlpha, hasBackfaceCulling);
+        Texture? normalTex = ResourceManager.Instance.GetOrCreateTexture(
+            "/assets/models/wall_03/tex_normal01.png",
+            new Texture.TextureFormat());
+        if (normalTex == null)
+        {
+            throw new NullReferenceException("Wall normal texture was not found");
+        }
+
+        _material = CommonMaterials.CreateDiffNormTiledLitMaterial(diffuseTex, normalTex, hasAlpha, hasBackfaceCulling);
         _material.SetProperty("tiling", new Vector2(transform.Scale?.X ?? 1f, transform.Scale?.Z ?? 1f));
         _material.SetProperty("offset", new Vector2(0f, 0f));
 
@@ -36,7 +44,8 @@ public class Wall03 : GameObject
             ResourceManager.Instance.GetVertexBuffers("/assets/models/wall_03/wall_03.glb.vert01")
             ?? ResourceManager.Instance.CreateVertexBuffersFromFile(
                 "/assets/models/wall_03/wall_03.glb.vert01",
-                CommonVertexAttribDescriptors.DiffuseTextureMesh);
+                CommonVertexAttribDescriptors.DiffuseNormalTextureMesh,
+                true);
         if (buffers == null)
         {
             throw new NullReferenceException("Vertex buffers were not found");
@@ -54,6 +63,7 @@ public class Wall03 : GameObject
     {
         //actual material properties
         _material.SetProperty("material.diffuseTex", 0);
+        _material.SetProperty("material.normalTex", 1);
         _material.SetProperty("material.specularCol", new Vector3(0.1f));
         _material.SetProperty("material.shininess", 8.0f);
     }

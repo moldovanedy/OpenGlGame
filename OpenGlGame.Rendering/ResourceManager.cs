@@ -211,14 +211,16 @@ public class ResourceManager : IDisposable
 
     public VertexBuffers? CreateVertexBuffersFromFile(
         string id,
-        VertexAttribDescriptors creationVertexAttribDescriptors)
+        VertexAttribDescriptors creationVertexAttribDescriptors,
+        bool hasTangents = false)
     {
         try
         {
             //automatically handles dictionary addition
             ModelLoaderUtility.LoadModelFromFile(
                 id.Substring(0, id.LastIndexOf('.')),
-                creationVertexAttribDescriptors);
+                creationVertexAttribDescriptors,
+                hasTangents);
         }
         catch (Exception ex)
         {

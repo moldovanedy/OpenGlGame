@@ -52,10 +52,10 @@ void main()
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specular = lights[i].specular * (spec * material.specularCol);
 
-        float distance = length(lights[i].worldPos - inLightingData.fragPos);
+        float dist = length(lights[i].worldPos - inLightingData.fragPos);
         float attenuation = 1.0 /
-        (lights[i].constantAttenuation + lights[i].linearAttenuation * distance
-        + lights[i].quadraticAttenuation * (distance * distance));
+        (lights[i].constantAttenuation + lights[i].linearAttenuation * dist
+        + lights[i].quadraticAttenuation * (dist * dist));
 
         ambient *= attenuation;
         diffuse *= attenuation;

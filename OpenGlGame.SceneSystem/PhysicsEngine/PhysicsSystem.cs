@@ -103,61 +103,65 @@ public class PhysicsSystem
 
     public void PhysicsUpdate()
     {
-        foreach (RigidBody rigidBody in _rigidBodies)
+        lock (_rigidBodies)
+        lock (_staticColliders)
         {
-            if (rigidBody.IsAffectedByGravity)
+            foreach (RigidBody rigidBody in _rigidBodies)
             {
-                ApplyGravity(rigidBody);
-            }
-
-            if (rigidBody.Owner != Player.Instance)
-            {
-                ApplyFriction(rigidBody);
-            }
-        }
-
-        //apply forces
-        foreach (RigidBody rigidBody in _rigidBodies)
-        {
-            VerletIntegrate(rigidBody);
-        }
-
-        //collision detection
-        foreach (RigidBody rigidBody in _rigidBodies)
-        {
-            var objectTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
-            if (objectTransform == null)
-            {
-                throw new Exception("RigidBody did not have a Transform3D component");
-            }
-
-            foreach (RigidBody otherRigidBody in _rigidBodies)
-            {
-                if (otherRigidBody == rigidBody)
+                if (rigidBody.IsAffectedByGravity)
                 {
-                    continue;
+                    ApplyGravity(rigidBody);
                 }
 
-                if (Aabb.DoBoxesIntersect(rigidBody.InternalAaBoundingBox, otherRigidBody.InternalAaBoundingBox))
+                if (rigidBody.Owner != Player.Instance)
                 {
-                    // Console.WriteLine("RigidBody collided with RigidBody");
-                    ResolveCollision(rigidBody, otherRigidBody);
+                    ApplyFriction(rigidBody);
                 }
             }
 
-            foreach (StaticCollider staticCollider in _staticColliders)
+            //apply forces
+            foreach (RigidBody rigidBody in _rigidBodies)
             {
-                var colliderTransform = (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D));
-                if (colliderTransform == null)
+                VerletIntegrate(rigidBody);
+            }
+
+            //collision detection
+            foreach (RigidBody rigidBody in _rigidBodies)
+            {
+                var objectTransform = (Transform3D?)rigidBody.Owner?.GetComponent(nameof(Transform3D));
+                if (objectTransform == null)
                 {
-                    throw new Exception("StaticCollider did not have a Transform3D component");
+                    throw new Exception("RigidBody did not have a Transform3D component");
                 }
 
-                Aabb colliderAabb = new(staticCollider.BoundingBox, colliderTransform.GetModelMatrix());
-
-                if (Aabb.DoBoxesIntersect(rigidBody.InternalAaBoundingBox, colliderAabb))
+                foreach (RigidBody otherRigidBody in _rigidBodies)
                 {
-                    ResolveCollision(rigidBody, staticCollider);
+                    if (otherRigidBody == rigidBody)
+                    {
+                        continue;
+                    }
+
+                    if (Aabb.DoBoxesIntersect(rigidBody.InternalAaBoundingBox, otherRigidBody.InternalAaBoundingBox))
+                    {
+                        // Console.WriteLine("RigidBody collided with RigidBody");
+                        ResolveCollision(rigidBody, otherRigidBody);
+                    }
+                }
+
+                foreach (StaticCollider staticCollider in _staticColliders)
+                {
+                    var colliderTransform = (Transform3D?)staticCollider.Owner?.GetComponent(nameof(Transform3D));
+                    if (colliderTransform == null)
+                    {
+                        throw new Exception("StaticCollider did not have a Transform3D component");
+                    }
+
+                    Aabb colliderAabb = new(staticCollider.BoundingBox, colliderTransform.GetModelMatrix());
+
+                    if (Aabb.DoBoxesIntersect(rigidBody.InternalAaBoundingBox, colliderAabb))
+                    {
+                        ResolveCollision(rigidBody, staticCollider);
+                    }
                 }
             }
         }

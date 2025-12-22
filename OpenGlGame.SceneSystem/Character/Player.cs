@@ -29,6 +29,7 @@ public class Player : GameObject
 
     public float Health { get; private set; } = 100;
     public bool IsDead { get; private set; }
+    public bool IsNearInteractable { get; private set; }
 
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
@@ -197,10 +198,7 @@ public class Player : GameObject
         Camera.Update(deltaTime);
 
         CheckInteractableHit(out Interactable? objectInRange);
-        if (objectInRange?.Owner?.GetComponent(nameof(MeshRenderer)) is MeshRenderer renderer)
-        {
-            renderer.ShouldDrawOutline = true;
-        }
+        IsNearInteractable = objectInRange?.Owner != null;
 
         if (!DebuggingData.IS_CAMERA_FREE_ROAM)
         {
@@ -247,6 +245,10 @@ public class Player : GameObject
         _hotTimeLeftSeconds = 0f;
         _hotTimeRightSeconds = 0f;
         _currentMovingDirections = Camera.CameraMovement.None;
+
+        _isJumpPressed = false;
+        _isInteractButtonPressed = false;
+        _isOnGround = false;
 
         Camera.ResetCameraOrientation();
     }

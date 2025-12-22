@@ -31,6 +31,43 @@ public static class CommonVertexAttribDescriptors
                 6 * sizeof(float))
         );
 
+    public static readonly VertexAttribDescriptors DiffuseNormalTextureMesh =
+        ResourceManager.Instance.GetVertexAttributeDescriptors(
+            "/assets/vertex_attributes/runtime_gen/diffuse_normal_texture_mesh")
+        ?? ResourceManager.Instance.CreateVertexAttribDescriptors(
+            "/assets/vertex_attributes/runtime_gen/diffuse_normal_texture_mesh",
+            new VertexAttribDescriptors.AttribDescriptor(
+                0,
+                3,
+                VertexAttribPointerType.Float,
+                14 * sizeof(float),
+                0),
+            new VertexAttribDescriptors.AttribDescriptor(
+                1,
+                3,
+                VertexAttribPointerType.Float,
+                14 * sizeof(float),
+                3 * sizeof(float)),
+            new VertexAttribDescriptors.AttribDescriptor(
+                2,
+                2,
+                VertexAttribPointerType.Float,
+                14 * sizeof(float),
+                6 * sizeof(float)),
+            new VertexAttribDescriptors.AttribDescriptor(
+                3,
+                3,
+                VertexAttribPointerType.Float,
+                14 * sizeof(float),
+                8 * sizeof(float)),
+            new VertexAttribDescriptors.AttribDescriptor(
+                4,
+                3,
+                VertexAttribPointerType.Float,
+                14 * sizeof(float),
+                11 * sizeof(float))
+        );
+
     public static readonly VertexAttribDescriptors VertexColorsMesh =
         ResourceManager.Instance.GetVertexAttributeDescriptors(
             "/assets/vertex_attributes/runtime_gen/vertex_colors_mesh")

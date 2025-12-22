@@ -199,6 +199,82 @@ public static class CommonMaterials
             hasBackfaceCulling);
     }
 
+    public static MeshMaterial CreateDiffSpecNormTiledLitMaterial(
+        Texture? diffuseTex = null,
+        Texture? specularTex = null,
+        Texture? normalTex = null,
+        bool hasAlphaBlending = false,
+        bool hasBackfaceCulling = true)
+    {
+        if (diffuseTex == null)
+        {
+            diffuseTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (diffuseTex == null)
+            {
+                throw new NullReferenceException("DiffSpecNormTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        if (specularTex == null)
+        {
+            specularTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (specularTex == null)
+            {
+                throw new NullReferenceException("DiffSpecNormTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        if (normalTex == null)
+        {
+            normalTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (normalTex == null)
+            {
+                throw new NullReferenceException("DiffSpecNormTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/diffuse_spec_normal_tiled_lit")
+            ?? throw new Exception("DiffSpecNormTiledLitMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.DiffuseNormalTextureMesh,
+            [diffuseTex, specularTex, normalTex],
+            hasAlphaBlending,
+            hasBackfaceCulling);
+    }
+
+    public static MeshMaterial CreateDiffNormTiledLitMaterial(
+        Texture? diffuseTex = null,
+        Texture? normalTex = null,
+        bool hasAlphaBlending = false,
+        bool hasBackfaceCulling = true)
+    {
+        if (diffuseTex == null)
+        {
+            diffuseTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (diffuseTex == null)
+            {
+                throw new NullReferenceException("DiffNormTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        if (normalTex == null)
+        {
+            normalTex = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (normalTex == null)
+            {
+                throw new NullReferenceException("DiffNormTiledLitMaterial: Default texture was not found");
+            }
+        }
+
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/diffuse_normal_tiled_lit")
+            ?? throw new Exception("DiffNormTiledLitMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.DiffuseNormalTextureMesh,
+            [diffuseTex, normalTex],
+            hasAlphaBlending,
+            hasBackfaceCulling);
+    }
+
     public static MeshMaterial CreateUiPolygonMaterial(
         bool hasAlphaBlending = false,
         bool hasBackfaceCulling = true)

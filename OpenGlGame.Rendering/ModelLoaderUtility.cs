@@ -17,13 +17,17 @@ public static unsafe class ModelLoaderUtility
     /// </summary>
     /// <param name="assetPath"></param>
     /// <param name="vertAttribDescriptors">The vertex attribute descriptors for all the contained meshes.</param>
+    /// <param name="hasTangents">Whether to include tangents and bitangents or not.</param>
     /// <example>
     /// Loads model /Assets/Models/cube_01/cube_01.glb; will use texture tex_diffuse01.png with the ID of
     /// "/assets/models/cube_01/tex_diffuse01.png"; will return the ID of the created vertex buffer:
     /// "/assets/models/cube_01/cube_01.glb.vert01".
     /// </example>
     /// <returns></returns>
-    public static int LoadModelFromFile(string assetPath, VertexAttribDescriptors vertAttribDescriptors)
+    public static int LoadModelFromFile(
+        string assetPath,
+        VertexAttribDescriptors vertAttribDescriptors,
+        bool hasTangents = false)
     {
         Scene* entireScene = AssimpCtx.ImportFile(
             AppDomain.CurrentDomain.BaseDirectory + assetPath,
@@ -35,7 +39,7 @@ public static unsafe class ModelLoaderUtility
         }
 
         int meshCount = 0;
-        ProcessNode(entireScene->MRootNode, entireScene, vertAttribDescriptors, assetPath, ref meshCount);
+        ProcessNode(entireScene->MRootNode, entireScene, vertAttribDescriptors, assetPath, hasTangents, ref meshCount);
         return meshCount;
     }
 
@@ -44,17 +48,30 @@ public static unsafe class ModelLoaderUtility
         Scene* parentScene,
         VertexAttribDescriptors vertAttribDescriptors,
         string assetPath,
+        bool hasTangents,
         ref int meshCount)
     {
         for (int i = 0; i < parentScene->MNumMeshes; i++)
         {
-            ProcessMesh(parentScene->MMeshes[i], parentScene, vertAttribDescriptors, assetPath, ref meshCount);
+            ProcessMesh(
+                parentScene->MMeshes[i],
+                parentScene,
+                vertAttribDescriptors,
+                assetPath,
+                hasTangents,
+                ref meshCount);
         }
 
 
         for (int i = 0; i < modelNode->MNumChildren; i++)
         {
-            ProcessNode(modelNode->MChildren[i], parentScene, vertAttribDescriptors, assetPath, ref meshCount);
+            ProcessNode(
+                modelNode->MChildren[i],
+                parentScene,
+                vertAttribDescriptors,
+                assetPath,
+                hasTangents,
+                ref meshCount);
         }
     }
 
@@ -63,6 +80,7 @@ public static unsafe class ModelLoaderUtility
         Scene* parentScene,
         VertexAttribDescriptors vertAttribDescriptors,
         string assetPath,
+        bool hasTangents,
         ref int meshCount)
     {
         List<float> vertexData = new((int)mesh->MNumVertices);
@@ -85,6 +103,23 @@ public static unsafe class ModelLoaderUtility
             {
                 vertexData.Add(mesh->MTextureCoords[0][i].X);
                 vertexData.Add(mesh->MTextureCoords[0][i].Y);
+            }
+
+            if (hasTangents)
+            {
+                if (mesh->MTangents != null)
+                {
+                    vertexData.Add(mesh->MTangents[i].X);
+                    vertexData.Add(mesh->MTangents[i].Y);
+                    vertexData.Add(mesh->MTangents[i].Z);
+                }
+
+                if (mesh->MBitangents != null)
+                {
+                    vertexData.Add(mesh->MBitangents[i].X);
+                    vertexData.Add(mesh->MBitangents[i].Y);
+                    vertexData.Add(mesh->MBitangents[i].Z);
+                }
             }
         }
 
