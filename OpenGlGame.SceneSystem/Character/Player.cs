@@ -30,6 +30,7 @@ public class Player : GameObject
     public float Health { get; private set; } = 100;
     public bool IsDead { get; private set; }
     public bool IsNearInteractable { get; private set; }
+    public bool HasPickedObjectUp { get; internal set; }
 
     private readonly Transform3D _transform;
     private readonly RigidBody _rigidBody;
@@ -37,6 +38,7 @@ public class Player : GameObject
     private Camera.CameraMovement _currentMovingDirections;
     private bool _isJumpPressed;
     private bool _isInteractButtonPressed;
+    private bool _isCurrentlyInteracting;
 
     private bool _isOnGround;
 
@@ -109,6 +111,7 @@ public class Player : GameObject
         }
 
         _isInteractButtonPressed = isPressingInteractButton;
+        _isCurrentlyInteracting = false;
     }
 
     public void RequestLoadingNextLevel(Vector3 teleportButtonCurrentPosition)
@@ -141,6 +144,43 @@ public class Player : GameObject
         }
     }
 
+
+    private void CheckInteractableHit(out Interactable? objectInRange)
+    {
+        objectInRange = null;
+        if (_isCurrentlyInteracting)
+        {
+            return;
+        }
+
+        List<Interactable> interactables = PhysicsSystem.Instance.GetCurrentInteractables();
+        foreach (Interactable interactable in interactables)
+        {
+            var interactableTransform = (Transform3D?)interactable.Owner?.GetComponent(nameof(Transform3D));
+            if (interactableTransform == null)
+            {
+                throw new Exception("Interactable did not have a Transform3D component");
+            }
+
+            Aabb colliderAabb = new(interactable.BoundingBox, interactableTransform.GetModelMatrix());
+            PhysicsSystem.RaycastHit? hit = PhysicsSystem.AabbRaycastTest(
+                Camera.Position,
+                Camera.FrontVector.Normalized(),
+                colliderAabb);
+
+            if (hit != null && hit.Value.Distance < 1.5f)
+            {
+                objectInRange = interactable;
+                if (_isInteractButtonPressed)
+                {
+                    interactable.InteractCallback();
+                    _isCurrentlyInteracting = true;
+                }
+
+                return;
+            }
+        }
+    }
 
     private static bool CheckIsOnGround(Aabb playerAabb, Aabb colliderAabb)
     {
@@ -371,39 +411,6 @@ public class Player : GameObject
 
         return false;
     }
-
-    private void CheckInteractableHit(out Interactable? objectInRange)
-    {
-        objectInRange = null;
-
-        List<Interactable> interactables = PhysicsSystem.Instance.GetCurrentInteractables();
-        foreach (Interactable interactable in interactables)
-        {
-            var interactableTransform = (Transform3D?)interactable.Owner?.GetComponent(nameof(Transform3D));
-            if (interactableTransform == null)
-            {
-                throw new Exception("Interactable did not have a Transform3D component");
-            }
-
-            Aabb colliderAabb = new(interactable.BoundingBox, interactableTransform.GetModelMatrix());
-            PhysicsSystem.RaycastHit? hit = PhysicsSystem.AabbRaycastTest(
-                Camera.Position,
-                Camera.FrontVector.Normalized(),
-                colliderAabb);
-
-            if (hit != null && hit.Value.Distance < 1.5f)
-            {
-                objectInRange = interactable;
-                if (_isInteractButtonPressed)
-                {
-                    interactable.InteractCallback();
-                }
-
-                return;
-            }
-        }
-    }
-
 
     private static float ComputeVelocity(float hotTime, float maxSpeed)
     {

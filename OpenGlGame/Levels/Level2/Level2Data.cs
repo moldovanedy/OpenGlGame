@@ -26,6 +26,8 @@ public class Level2Data : ILevelData
         AddStage2Delimiters(objects);
         AddEnemies(objects);
 
+        AddHelpers(objects);
+
         AddPuzzleCubes(objects);
         AddLights(objects);
 
@@ -169,18 +171,18 @@ public class Level2Data : ILevelData
             new Floor01(
                 new Transform3D
                 {
-                    Position = new Vector3(-29.5f, 3f, 7f),
+                    Position = new Vector3(-29.5f, 3f, 11f),
                     Rotation = new Quaternion(0f, 0f, 0f),
-                    Scale = new Vector3(15f, 1f, 18f)
+                    Scale = new Vector3(15f, 1f, 10f)
                 }),
 
             //walls
             new Wall01(
                 new Transform3D
                 {
-                    Position = new Vector3(-22f, 4f, 8f),
+                    Position = new Vector3(-22f, 4f, 12f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
-                    Scale = new Vector3(20f, 1f, 12f)
+                    Scale = new Vector3(12f, 1f, 12f)
                 }),
             new Wall01(
                 new Transform3D
@@ -206,18 +208,142 @@ public class Level2Data : ILevelData
             new Wall01(
                 new Transform3D
                 {
-                    Position = new Vector3(-37f, 4f, 12f),
+                    Position = new Vector3(-37f, 4f, 16f),
                     Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(-90f)),
-                    Scale = new Vector3(28f, 1f, 12f)
+                    Scale = new Vector3(20f, 1f, 12f)
+                }),
+
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-32f, 6.5f, 6f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(180f)),
+                    Scale = new Vector3(10f, 1f, 7f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-26f, 8f, 6f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(180f)),
+                    Scale = new Vector3(2f, 1f, 4f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-23.5f, 6.5f, 6f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(180f)),
+                    Scale = new Vector3(3f, 1f, 7f)
                 }),
 
             //ceiling
             new Wall01(
                 new Transform3D
                 {
-                    Position = new Vector3(-29.5f, 10f, 12f),
+                    Position = new Vector3(-29.5f, 10f, 16f),
                     Rotation = new Quaternion(float.DegreesToRadians(0f), 0f, float.DegreesToRadians(180f)),
-                    Scale = new Vector3(15f, 1f, 28f)
+                    Scale = new Vector3(15f, 1f, 20f)
+                }),
+
+            //corridor
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-27f, 4.5f, 3.8f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(4f, 1f, 3f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-25f, 4.5f, 3.8f),
+                    Rotation = new Quaternion(float.DegreesToRadians(-90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(4f, 1f, 3f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-26f, 6f, 3.8f),
+                    Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(180f)),
+                    Scale = new Vector3(2f, 1f, 4f)
+                }),
+
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-26f, 3f, 3.8f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(2f, 1f, 4f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-26f, 3f, 5.9f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(2f, 1f, 0.2f)
+                }),
+            new Wall01(
+                new Transform3D
+                {
+                    Position = new Vector3(-26f, 6f, 5.9f),
+                    Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(180f)),
+                    Scale = new Vector3(2f, 1f, 0.2f)
+                })
+        ]);
+    }
+
+    private static void AddHelpers(List<GameObject> objects)
+    {
+        objects.AddRange([
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-32f, -1.25f, 16.75f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1.5f, 1f, 1.5f)
+                }),
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-31f, -0.5f, 16.75f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(2f, 1f, 1.5f)
+                }),
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-31f, -1.25f, 17.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Scale = new Vector3(2f, 1f, 1.5f)
+                }),
+
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-30f, 0.25f, 16.75f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1.5f, 1f, 1.5f)
+                }),
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-28f, 1.0f, 16.75f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(4f, 1f, 1.5f)
+                }),
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-28f, -0.5f, 17.5f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
+                    Scale = new Vector3(4f, 1f, 3f)
+                }),
+
+            new Floor01(
+                new Transform3D
+                {
+                    Position = new Vector3(-26f, -0.5f, 16.75f),
+                    Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, float.DegreesToRadians(-90f)),
+                    Scale = new Vector3(1.5f, 1f, 3f)
                 })
         ]);
     }
@@ -498,7 +624,7 @@ public class Level2Data : ILevelData
                 Level2Callbacks.EM_LIGHT_SPECULAR_UPPER_LIMIT,
                 1.0f, 0.14f, 0.07f));
 
-        Vector3 light6Pos = new(-30.0f, 10.0f, 5.0f);
+        Vector3 light6Pos = new(-30.0f, 10.0f, 12.0f);
         var light6Support = new LightSupport01(
             new Transform3D
             {
