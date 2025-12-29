@@ -49,6 +49,17 @@ public class Camera
         return projection * view;
     }
 
+    internal Matrix4 GetProjectionMatrix()
+    {
+        return Matrix4.CreatePerspectiveFieldOfView(
+            float.DegreesToRadians(60), Renderer.ASPECT_RATIO, 0.01f, 100f);
+    }
+
+    internal Matrix4 GetViewMatrix()
+    {
+        return Matrix4.LookAt(Position, Position + FrontVector, UpVector);
+    }
+
     internal void Update(double deltaTime)
     {
         Vector3? playerPos = ((Transform3D?)Player.Instance.GetComponent(nameof(Transform3D)))?.Position;

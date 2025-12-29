@@ -85,7 +85,7 @@ public class Texture : ResourceBase, IDisposable
             [(int)texFormat.XWrapMode]);
         GL.TexParameterI(
             TextureTarget.Texture2D,
-            TextureParameterName.TextureWrapS,
+            TextureParameterName.TextureWrapT,
             [(int)texFormat.YWrapMode]);
 
         GL.TexParameterI(

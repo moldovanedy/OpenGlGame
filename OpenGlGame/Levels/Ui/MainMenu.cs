@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenGlGame.Rendering;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Character;
+using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.Prefabs.Ui;
 using OpenTK.Mathematics;
 
@@ -35,7 +36,14 @@ public class MainMenu : ILevelData
             {
                 NormalColor = NormalButtonCol,
                 HoverColor = NormalButtonHoverCol,
-                OnClick = () => { Player.Instance.RequestLoadingNextLevel(new Vector3(1.74f, 0f, -4f)); }
+                OnClick = () =>
+                {
+                    Player.Instance.RequestLoadingNextLevel(
+                        new Transform3D
+                        {
+                            Position = new Vector3(1.74f, 0f, -4f)
+                        });
+                }
             },
             new UiButton(
                 new Vector2(0.38f, -0.8f),

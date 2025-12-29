@@ -124,4 +124,23 @@ public static class CommonVertexAttribDescriptors
                 4 * sizeof(float),
                 2 * sizeof(float))
         );
+
+    public static readonly VertexAttribDescriptors Skybox =
+        ResourceManager.Instance.GetVertexAttributeDescriptors(
+            "/assets/vertex_attributes/runtime_gen/skybox")
+        ?? ResourceManager.Instance.CreateVertexAttribDescriptors(
+            "/assets/vertex_attributes/runtime_gen/skybox",
+            new VertexAttribDescriptors.AttribDescriptor(
+                0,
+                3,
+                VertexAttribPointerType.Float,
+                6 * sizeof(float),
+                0),
+            new VertexAttribDescriptors.AttribDescriptor(
+                1,
+                3,
+                VertexAttribPointerType.Float,
+                6 * sizeof(float),
+                3 * sizeof(float))
+        );
 }

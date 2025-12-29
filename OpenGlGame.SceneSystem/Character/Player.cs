@@ -114,11 +114,14 @@ public class Player : GameObject
         _isCurrentlyInteracting = false;
     }
 
-    public void RequestLoadingNextLevel(Vector3 teleportButtonCurrentPosition)
+    public void RequestLoadingNextLevel(Transform3D teleportButtonCurrentTransform)
     {
         //1.74 is the X offset of the teleport button from the transition room center
-        float deltaX = _transform.Position.X - teleportButtonCurrentPosition.X + 1.74f;
-        float deltaZ = _transform.Position.Z - teleportButtonCurrentPosition.Z;
+        float deltaX =
+            _transform.Position.X
+            - teleportButtonCurrentTransform.Position.X
+            + 1.74f * MathF.Cos(teleportButtonCurrentTransform.Rotation?.ToEulerAngles().X ?? 0f);
+        float deltaZ = _transform.Position.Z - teleportButtonCurrentTransform.Position.Z;
 
         NextLevelRequestedEvent?.Invoke();
         _transform.Position = new Vector3(SpawnPosition.X + deltaX, SpawnPosition.Y, SpawnPosition.Z + deltaZ);

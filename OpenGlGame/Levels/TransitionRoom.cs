@@ -27,6 +27,11 @@ public class TransitionRoom : ILevelData
         _isOutRoom = isOutRoom;
     }
 
+    public void SetYRotation(float yRotation)
+    {
+        _callbackManager.YRotation = yRotation;
+    }
+
     public GameObject[] LoadAndGetGameObjects()
     {
         List<GameObject> objects = [];
@@ -66,6 +71,36 @@ public class TransitionRoom : ILevelData
             {
                 pointLight.LightData = new Renderer.PointLightData(
                     pointLight.LightData.Position + offset,
+                    pointLight.LightData.LightColor,
+                    pointLight.LightData.AmbientIntensity,
+                    pointLight.LightData.DiffuseIntensity,
+                    pointLight.LightData.SpecularIntensity,
+                    pointLight.LightData.ConstantAttenuation,
+                    pointLight.LightData.LinearAttenuation,
+                    pointLight.LightData.QuadraticAttenuation
+                );
+            }
+        }
+    }
+
+    public static void RotateObjectsAroundPoint(GameObject[] objects, Vector3 referencePoint, Quaternion rotation)
+    {
+        foreach (GameObject obj in objects)
+        {
+            if (obj.GetComponent(nameof(Transform3D)) is Transform3D transform)
+            {
+                Vector3 relativePos = transform.Position - referencePoint;
+                transform.Position = referencePoint + Vector3.Transform(relativePos, rotation);
+                transform.Rotation = rotation * transform.Rotation;
+            }
+
+            if (obj.GetComponent(nameof(PointLight)) is PointLight pointLight)
+            {
+                Vector3 relativePos = pointLight.LightData.Position - referencePoint;
+                Vector3 newPos = referencePoint + Vector3.Transform(relativePos, rotation);
+
+                pointLight.LightData = new Renderer.PointLightData(
+                    newPos,
                     pointLight.LightData.LightColor,
                     pointLight.LightData.AmbientIntensity,
                     pointLight.LightData.DiffuseIntensity,
@@ -225,13 +260,10 @@ public class TransitionRoom : ILevelData
                         await Task.Delay(700);
                         MainThreadDispatcher.Enqueue(() =>
                         {
-                            Vector3 pos = Vector3.Zero;
                             if (_button?.GetComponent(nameof(Transform3D)) is Transform3D btnTransform)
                             {
-                                pos = btnTransform.Position;
+                                Player.Instance.RequestLoadingNextLevel(btnTransform);
                             }
-
-                            Player.Instance.RequestLoadingNextLevel(pos);
                         });
                     });
                 }

@@ -346,4 +346,46 @@ public class ResourceManager : IDisposable
             return null;
         }
     }
+
+    public static byte[] ReadRawByteTextureFromFile(string id, ref Texture.TextureFormat texFormat)
+    {
+        if (!id.StartsWith('/'))
+        {
+            return [];
+        }
+
+        ColorComponents stbImageFormat;
+        switch (texFormat.Format)
+        {
+            default:
+                throw new ArgumentException(
+                    "Unknown texture format:  " + texFormat.Format,
+                    nameof(texFormat));
+            case PixelFormat.Rgba:
+                stbImageFormat = ColorComponents.RedGreenBlueAlpha;
+                break;
+            case PixelFormat.Rgb:
+                stbImageFormat = ColorComponents.RedGreenBlue;
+                break;
+            case PixelFormat.Alpha:
+            case PixelFormat.Red:
+            case PixelFormat.Green:
+            case PixelFormat.Blue:
+                stbImageFormat = ColorComponents.Grey;
+                break;
+            case PixelFormat.Rg:
+                stbImageFormat = ColorComponents.GreyAlpha;
+                break;
+        }
+
+        //flip the image vertically to align to OpenGL format
+        StbImage.stbi_set_flip_vertically_on_load(1);
+        ImageResult image = ImageResult.FromStream(
+            File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + id),
+            stbImageFormat);
+
+        texFormat.Width = image.Width;
+        texFormat.Height = image.Height;
+        return image.Data;
+    }
 }

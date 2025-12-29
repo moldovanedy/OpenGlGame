@@ -3,11 +3,13 @@ using System.Timers;
 using OpenGlGame.Levels;
 using OpenGlGame.Levels.Level1;
 using OpenGlGame.Levels.Level2;
+using OpenGlGame.Levels.Level3;
 using OpenGlGame.Levels.Ui;
 using OpenGlGame.Rendering;
 using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Character;
+using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -28,7 +30,8 @@ public class Application : IDisposable
     [
         new MainMenu(),
         new Level1Data(),
-        new Level2Data()
+        new Level2Data(),
+        new Level3Data()
     ];
 
     //Wayland does not allow a window to control its own window mode...
@@ -78,7 +81,16 @@ public class Application : IDisposable
         SetLevel(0);
 
         Player.Instance.EnterScene();
-        Player.Instance.NextLevelRequestedEvent += () => { SetLevel(++_currentLevelIndex); };
+        Player.Instance.NextLevelRequestedEvent += () =>
+        {
+            if (_currentLevelIndex >= _levels.Length - 1)
+            {
+                Console.WriteLine("ERROR: Can't advance past the last level");
+                return;
+            }
+
+            SetLevel(++_currentLevelIndex);
+        };
         Player.Instance.PlayerDeadEvent += () =>
         {
             GameOverScreen gameOverScreen = new();
@@ -232,6 +244,23 @@ public class Application : IDisposable
 #if DEBUG
             case Keys.F5:
                 SetLevel(_currentLevelIndex);
+                break;
+            case Keys.F12:
+            {
+                SetLevel(_currentLevelIndex);
+                if (Player.Instance.GetComponent(nameof(Transform3D)) is not Transform3D transform)
+                {
+                    break;
+                }
+
+                if (Player.Instance.GetComponent(nameof(RigidBody)) is not RigidBody rigidBody)
+                {
+                    break;
+                }
+
+                transform.Position = Player.SpawnPosition;
+                rigidBody.ResetPositions(transform.Position);
+            }
                 break;
 #endif
             case Keys.W:

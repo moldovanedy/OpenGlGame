@@ -1,3 +1,4 @@
+using System;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.Prefabs.Delimiters;
 using OpenTK.Mathematics;
@@ -8,6 +9,8 @@ public class TransitionRoomCallbacks
 {
     public const float OPEN_DOOR_X = 1.499f;
     public const float CLOSED_DOOR_X = 0.499f;
+
+    internal float YRotation { get; set; } = 0f;
 
     private bool _isClosingDoors;
 
@@ -74,8 +77,14 @@ public class TransitionRoomCallbacks
         }
 
         _doorTimer += deltaTime;
-        float desiredLeftPos = _isClosingDoors ? _baseLeftX - 1f : _baseLeftX + 1f;
-        float desiredRightPos = _isClosingDoors ? _baseRightX + 1f : _baseRightX - 1f;
+        float desiredLeftPos =
+            _isClosingDoors
+                ? _baseLeftX - 1f * MathF.Cos(YRotation)
+                : _baseLeftX + 1f * MathF.Cos(YRotation);
+        float desiredRightPos =
+            _isClosingDoors
+                ? _baseRightX + 1f * MathF.Cos(YRotation)
+                : _baseRightX - 1f * MathF.Cos(YRotation);
 
         if (_doorTimer < 0.5f)
         {

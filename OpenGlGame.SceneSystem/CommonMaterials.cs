@@ -310,4 +310,15 @@ public static class CommonMaterials
             hasAlphaBlending,
             hasBackfaceCulling);
     }
+
+    public static MeshMaterial CreateSkyboxMaterial()
+    {
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/skybox")
+            ?? throw new Exception("SkyboxMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.Skybox,
+            [],
+            false,
+            false);
+    }
 }

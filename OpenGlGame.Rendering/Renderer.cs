@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenGlGame.Data;
 using OpenGlGame.Rendering.Operations;
+using OpenGlGame.Rendering.Resources;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -97,16 +98,36 @@ public class Renderer
     private readonly List<OperationBase> _commands = [];
 
     private Matrix4 _viewProjectionMatrix = Matrix4.Identity;
+    private Matrix4 _individualViewMatrix = Matrix4.Identity;
+    private Matrix4 _individualProjectionMatrix = Matrix4.Identity;
+
     private PointLightData[] _pointLights = [];
+
+    private Cubemap? _skyboxCubemap;
+    private MeshMaterial? _skyboxMaterial;
+    private VertexBuffers? _skyboxVertBuffers;
 
     public void UpdateViewProjectionMatrix(Matrix4 viewProjectionMatrix)
     {
         _viewProjectionMatrix = viewProjectionMatrix;
     }
 
+    public void UpdateIndividualViewProjectionMatrices(Matrix4 viewMatrix, Matrix4 projectionMatrix)
+    {
+        _individualViewMatrix = viewMatrix;
+        _individualProjectionMatrix = projectionMatrix;
+    }
+
     public void UpdatePointLights(PointLightData[] pointLights)
     {
         _pointLights = pointLights;
+    }
+
+    public void UpdateSkybox(Cubemap cubemap, MeshMaterial material, VertexBuffers vertexBuffers)
+    {
+        _skyboxCubemap = cubemap;
+        _skyboxMaterial = material;
+        _skyboxVertBuffers = vertexBuffers;
     }
 
     public void Render(ref RenderFrameData frameData)
@@ -139,6 +160,8 @@ public class Renderer
             float offsetY = (frameData.FbHeight - newHeight) / 2.0f;
             GL.Viewport(0, (int)offsetY, frameData.FbWidth, (int)newHeight);
         }
+
+        DrawSkybox();
 
         ulong lastOrderKey = ulong.MaxValue;
         foreach (OperationBase command in _commands)
@@ -258,5 +281,37 @@ public class Renderer
         {
             GL.BindVertexArray(drawOp.VertexBuffersDep.GlVao);
         }
+    }
+
+    private void DrawSkybox()
+    {
+        if (_skyboxMaterial == null || _skyboxCubemap == null || _skyboxVertBuffers == null)
+        {
+            return;
+        }
+
+        GL.Disable(EnableCap.CullFace);
+        GL.DepthFunc(DepthFunction.Lequal);
+
+        GL.UseProgram(_skyboxMaterial.UsedShader.GlId);
+
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.TextureCubeMap, _skyboxCubemap.GlCubemapId);
+
+        GL.BindVertexArray(_skyboxVertBuffers.GlVao);
+
+        _skyboxMaterial.SetProperty("view", _individualViewMatrix.ClearTranslation());
+        _skyboxMaterial.SetProperty("projection", _individualProjectionMatrix);
+        _skyboxMaterial.SetProperty("skybox", 0);
+        _skyboxMaterial.UpdateProperties();
+
+        GL.DrawElements(
+            _skyboxVertBuffers.PrimitiveTopology,
+            _skyboxVertBuffers.IndexCount,
+            DrawElementsType.UnsignedInt,
+            0);
+
+        GL.DepthFunc(DepthFunction.Less);
+        GL.Enable(EnableCap.CullFace);
     }
 }

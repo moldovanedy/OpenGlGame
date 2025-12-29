@@ -65,4 +65,10 @@ public class RigidBody : IPhysicsObjectComponent
     {
         InternalPosition = InternalPreviousPosition + (float)PhysicsSystem.PHYSICS_TICK_SECONDS * velocity;
     }
+
+    public void ResetPositions(Vector3 newPosition)
+    {
+        InternalPosition = newPosition;
+        InternalPreviousPosition = newPosition;
+    }
 }

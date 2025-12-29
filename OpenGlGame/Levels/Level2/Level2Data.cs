@@ -4,6 +4,7 @@ using OpenGlGame.SceneSystem;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.Prefabs.Delimiters;
 using OpenGlGame.SceneSystem.Prefabs.Enemies;
+using OpenGlGame.SceneSystem.Prefabs.Interactables;
 using OpenGlGame.SceneSystem.Prefabs.Lights;
 using OpenGlGame.SceneSystem.Prefabs.Misc;
 using OpenTK.Mathematics;
@@ -18,9 +19,9 @@ public class Level2Data : ILevelData
     {
         List<GameObject> objects = [];
 
-        GameObject[] transitionRoom = new TransitionRoom(false).LoadAndGetGameObjects();
-        TransitionRoom.OffsetObjects(transitionRoom, TransitionRoom.InRoomSpawnPosition);
-        objects.AddRange(transitionRoom);
+        GameObject[] transitionInRoom = new TransitionRoom(false).LoadAndGetGameObjects();
+        TransitionRoom.OffsetObjects(transitionInRoom, TransitionRoom.InRoomSpawnPosition);
+        objects.AddRange(transitionInRoom);
 
         AddStage1Delimiters(objects);
         AddStage2Delimiters(objects);
@@ -28,8 +29,21 @@ public class Level2Data : ILevelData
 
         AddHelpers(objects);
 
-        AddPuzzleCubes(objects);
+        AddPuzzleElements(objects);
         AddLights(objects);
+
+        Vector3 outRoomSpawnPosition = new(-26f, 5f, -0.2f);
+        TransitionRoom transOutRoom = new(true);
+        transOutRoom.SetYRotation(float.DegreesToRadians(180f));
+
+        GameObject[] transitionOutRoom = transOutRoom.LoadAndGetGameObjects();
+        TransitionRoom.OffsetObjects(transitionOutRoom, outRoomSpawnPosition);
+        TransitionRoom.RotateObjectsAroundPoint(
+            transitionOutRoom,
+            outRoomSpawnPosition,
+            Quaternion.FromAxisAngle(Vector3.UnitY, float.DegreesToRadians(180f)));
+
+        objects.AddRange(transitionOutRoom);
 
         objects[0].UpdateEvent += deltaTime => { _callbacks.Update(deltaTime); };
         return objects.ToArray();
@@ -348,9 +362,10 @@ public class Level2Data : ILevelData
         ]);
     }
 
-    private static void AddPuzzleCubes(List<GameObject> objects)
+    private static void AddPuzzleElements(List<GameObject> objects)
     {
         objects.AddRange([
+            //cubes
             new Cube01(
                 new Transform3D
                 {
@@ -369,6 +384,22 @@ public class Level2Data : ILevelData
                 new Transform3D
                 {
                     Position = new Vector3(-36f, -0.35f, 17f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+
+            //placement buttons
+            new Btn02(
+                new Transform3D
+                {
+                    Position = new Vector3(-35f, 3.4f, 13f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new Btn02(
+                new Transform3D
+                {
+                    Position = new Vector3(-24f, 3.4f, 13f),
                     Rotation = new Quaternion(0f, 0f, 0f),
                     Scale = new Vector3(1f, 1f, 1f)
                 })
