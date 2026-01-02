@@ -28,6 +28,7 @@ public class Level3Data : ILevelData
         objects.AddRange(transitionInRoom);
 
         AddDelimiters(objects);
+        AddFinishFlag(objects);
         AddLights(objects);
 
         return objects.ToArray();
@@ -245,13 +246,42 @@ public class Level3Data : ILevelData
                     Position = new Vector3(0.0f, -35f, 13.5f),
                     Rotation = new Quaternion(float.DegreesToRadians(90f), 0f, 0f),
                     Scale = new Vector3(64f, 1f, 100f)
+                }),
+
+            //floor
+            new RockyWall01(
+                new Transform3D
+                {
+                    Position = new Vector3(0f, -85f, 0f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(364f, 1f, 300f)
+                })
+        ]);
+    }
+
+    private static void AddFinishFlag(List<GameObject> objects)
+    {
+        objects.AddRange([
+            new FlagPole(
+                new Transform3D
+                {
+                    Position = new Vector3(-10f, 15f, -2f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new Flag(
+                new Transform3D
+                {
+                    Position = new Vector3(-10f, 16f, -1.1f),
+                    Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1f, 1f, 1f)
                 })
         ]);
     }
 
     private static void AddLights(List<GameObject> objects)
     {
-        Vector3 lightPos = new(10f, 25f, -45f);
+        Vector3 lightPos = new(-50f, 25f, -45f);
         objects.Add(
             new Light02(
                 new Transform3D
@@ -264,6 +294,6 @@ public class Level3Data : ILevelData
                     0.2f,
                     0.65f,
                     0.2f,
-                    1.0f, 0.0f, 0.0f)));
+                    0.3f, 0.0f, 0.0f)));
     }
 }

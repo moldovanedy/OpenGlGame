@@ -9,23 +9,26 @@ namespace OpenGlGame.SceneSystem.Prefabs.Interactables;
 
 public class Btn02 : GameObject
 {
-    private readonly Transform3D _transform;
-    private MeshMaterial _material;
+    private readonly MeshMaterial _material;
 
-    public Btn02(Transform3D transform, bool hasAlpha = false, bool hasBackfaceCulling = true)
+    public Btn02(Transform3D transform)
     {
         UpdateEvent += OnUpdate;
 
-        _transform = transform;
-        _material = CommonMaterials.CreateColoredLitMaterial(
-            0xc0, 0xc0, 0xc0, 0xff,
-            hasAlpha,
-            hasBackfaceCulling);
+        Texture? diffuseTex = ResourceManager.Instance.GetOrCreateTexture(
+            "/assets/models/btn_02/tex_diffuse01.png",
+            new Texture.TextureFormat());
+        if (diffuseTex == null)
+        {
+            throw new NullReferenceException("Btn02 texture was not found");
+        }
+
+        _material = CommonMaterials.CreateDiffuseLitMaterial(diffuseTex);
         AddComponent(transform);
 
         AddComponent(
             new StaticCollider(
-                new Aabb(new Vector3(-0.75f, -0.1f, -0.75f), new Vector3(1.5f, 0.2f, 1.5f))));
+                new Aabb(new Vector3(-0.75f, -0.4f, -0.75f), new Vector3(1.5f, 0.2f, 1.5f))));
 
         VertexBuffers? buffers =
             ResourceManager.Instance.GetVertexBuffers("/assets/models/btn_02/btn_02.glb.vert01")

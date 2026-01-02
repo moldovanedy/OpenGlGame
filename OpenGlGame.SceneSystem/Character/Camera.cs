@@ -43,7 +43,7 @@ public class Camera
     internal Matrix4 GetViewProjectionMatrix()
     {
         Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
-            float.DegreesToRadians(60), Renderer.ASPECT_RATIO, 0.01f, 100f).Transposed();
+            float.DegreesToRadians(60), Renderer.ASPECT_RATIO, 0.01f, 300f).Transposed();
         Matrix4 view = Matrix4.LookAt(Position, Position + FrontVector, UpVector).Transposed();
 
         return projection * view;

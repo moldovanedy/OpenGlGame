@@ -21,10 +21,10 @@ namespace OpenGlGame;
 
 public class Application : IDisposable
 {
+    public static int CurrentLevelIndex { get; private set; } = -1;
+
     private GameWindow? _windowRef;
     private Timer? _physicsUpdateTimer;
-
-    private int _currentLevelIndex = -1;
 
     private readonly ILevelData[] _levels =
     [
@@ -83,13 +83,13 @@ public class Application : IDisposable
         Player.Instance.EnterScene();
         Player.Instance.NextLevelRequestedEvent += () =>
         {
-            if (_currentLevelIndex >= _levels.Length - 1)
+            if (CurrentLevelIndex >= _levels.Length - 1)
             {
                 Console.WriteLine("ERROR: Can't advance past the last level");
                 return;
             }
 
-            SetLevel(++_currentLevelIndex);
+            SetLevel(++CurrentLevelIndex);
         };
         Player.Instance.PlayerDeadEvent += () =>
         {
@@ -103,6 +103,27 @@ public class Application : IDisposable
 
             GameObject[] gameOverUiObj = gameOverScreen.LoadAndGetGameObjects();
             foreach (GameObject uiObj in gameOverUiObj)
+            {
+                SceneManager.Instance.AddObject(uiObj);
+            }
+
+            if (_windowRef != null)
+            {
+                _windowRef.CursorState = CursorState.Normal;
+            }
+        };
+        Player.Instance.GameCompleteEvent += () =>
+        {
+            GameCompleteScreen gameCompleteScreen = new();
+            gameCompleteScreen.RetryRequestedEvent += () =>
+            {
+                Player.Instance.ExitScene();
+                Player.Instance.EnterScene();
+                SetLevel(1);
+            };
+
+            GameObject[] gameCompleteUiObj = gameCompleteScreen.LoadAndGetGameObjects();
+            foreach (GameObject uiObj in gameCompleteUiObj)
             {
                 SceneManager.Instance.AddObject(uiObj);
             }
@@ -152,7 +173,7 @@ public class Application : IDisposable
         }
 
         SceneManager.Instance.SetLevel(combined);
-        _currentLevelIndex = levelIndex;
+        CurrentLevelIndex = levelIndex;
     }
 
     internal void Update(FrameEventArgs e, GameWindow window)
@@ -243,11 +264,11 @@ public class Application : IDisposable
             //debug-only reload feature
 #if DEBUG
             case Keys.F5:
-                SetLevel(_currentLevelIndex);
+                SetLevel(CurrentLevelIndex);
                 break;
             case Keys.F12:
             {
-                SetLevel(_currentLevelIndex);
+                SetLevel(CurrentLevelIndex);
                 if (Player.Instance.GetComponent(nameof(Transform3D)) is not Transform3D transform)
                 {
                     break;
@@ -382,7 +403,7 @@ public class Application : IDisposable
         _lastMouseX = e.X;
         _lastMouseY = e.Y;
 
-        if (_currentLevelIndex != 0)
+        if (CurrentLevelIndex != 0)
         {
             Player.Instance.Camera.InputLookDirectionChanged(xOffset, yOffset);
         }

@@ -26,6 +26,7 @@ public class Player : GameObject
     public Camera Camera { get; private set; }
     public event Action? NextLevelRequestedEvent;
     public event Action? PlayerDeadEvent;
+    public event Action? GameCompleteEvent;
 
     public float Health { get; private set; } = 100;
     public bool IsDead { get; private set; }
@@ -41,6 +42,7 @@ public class Player : GameObject
     private bool _isCurrentlyInteracting;
 
     private bool _isOnGround;
+    private Vector3 _lastVelocity;
 
     private Player()
     {
@@ -58,7 +60,8 @@ public class Player : GameObject
             {
                 Mass = 70f,
                 BoundingBox = new Aabb(new Vector3(-0.3f, -0.875f, -0.15f), PlayerSize),
-                RestitutionCoefficient = 0f
+                RestitutionCoefficient = 0f,
+                IsAffectedByGravity = false
             };
             AddComponent(_rigidBody);
         }
@@ -79,6 +82,7 @@ public class Player : GameObject
             return;
         }
 
+        ApplyFallDamageIfNeeded();
         MovePlayer();
         _isOnGround = CheckIsOnGround();
     }
@@ -116,6 +120,9 @@ public class Player : GameObject
 
     public void RequestLoadingNextLevel(Transform3D teleportButtonCurrentTransform)
     {
+        //this is one-time, just for the transition from the main menu to the first level
+        _rigidBody.IsAffectedByGravity = true;
+
         //1.74 is the X offset of the teleport button from the transition room center
         float deltaX =
             _transform.Position.X
@@ -145,6 +152,12 @@ public class Player : GameObject
             IsDead = true;
             PlayerDeadEvent?.Invoke();
         }
+    }
+
+    public void SignalGameCompletion()
+    {
+        GameCompleteEvent?.Invoke();
+        IsDead = true;
     }
 
 
@@ -280,8 +293,11 @@ public class Player : GameObject
         Health = 100;
         _transform.Position = new Vector3(SpawnPosition.X, SpawnPosition.Y + 0.5f, SpawnPosition.Z);
 
-        _rigidBody.InternalPosition = _transform.Position;
-        _rigidBody.InternalPreviousPosition = _transform.Position;
+        if (!DebuggingData.IS_CAMERA_FREE_ROAM)
+        {
+            _rigidBody.InternalPosition = _transform.Position;
+            _rigidBody.InternalPreviousPosition = _transform.Position;
+        }
 
         _hotTimeFrontSeconds = 0f;
         _hotTimeBackSeconds = 0f;
@@ -294,6 +310,24 @@ public class Player : GameObject
         _isOnGround = false;
 
         Camera.ResetCameraOrientation();
+    }
+
+    private void ApplyFallDamageIfNeeded()
+    {
+        //fall damage (these are purely speculative and achieved through playtesting, not actual physics)
+        Vector3 thisVelocity = _rigidBody.DerivedVelocity;
+        float shock = MathF.Abs(thisVelocity.Y - _lastVelocity.Y);
+
+        _lastVelocity = _rigidBody.DerivedVelocity;
+        const float MIN_SHOCK_THRESHOLD = 0.17f;
+
+        if (shock < MIN_SHOCK_THRESHOLD)
+        {
+            return;
+        }
+
+        float damage = float.Lerp(1f, 100f, (shock - MIN_SHOCK_THRESHOLD) * MathF.Exp(shock * 5f));
+        DecreaseHealth(damage);
     }
 
     private void MovePlayer()

@@ -23,7 +23,7 @@ public class GameOverScreen : ILevelData
                 true,
                 1)
             {
-                Color = new Vector4(0.01f, 0.01f, 0.01f, 0.6f)
+                Color = new Vector4(0.05f, 0.01f, 0.01f, 0.6f)
             },
 
             new UiButton(
@@ -50,7 +50,7 @@ public class GameOverScreen : ILevelData
         objects.AddRange(
             AsciiSymbol.CreateText(
                 "Game over!",
-                new Vector2(-0.46f, 0.25f),
+                new Vector2(-0.45f, 0.25f),
                 new Vector2(0.1f, 0.1f * Renderer.ASPECT_RATIO),
                 kerning: 1.15f,
                 layer: 2));
