@@ -311,6 +311,7 @@ public static class CommonMaterials
             hasBackfaceCulling);
     }
 
+
     public static MeshMaterial CreateSkyboxMaterial()
     {
         return new MeshMaterial(
@@ -318,6 +319,27 @@ public static class CommonMaterials
             ?? throw new Exception("SkyboxMaterial: Could not find shader file"),
             CommonVertexAttribDescriptors.Skybox,
             [],
+            false,
+            false);
+    }
+
+    public static MeshMaterial CreateWavingFlagMaterial(
+        Texture? texture = null)
+    {
+        if (texture == null)
+        {
+            texture = ResourceManager.Instance.GetOrCreateTexture("default_texture.rgba.raw");
+            if (texture == null)
+            {
+                throw new NullReferenceException("WavingFlagMaterial: Default texture was not found");
+            }
+        }
+
+        return new MeshMaterial(
+            ResourceManager.Instance.GetOrCreateShader("/assets/shaders/waving_flag")
+            ?? throw new Exception("DiffuseLitMaterial: Could not find shader file"),
+            CommonVertexAttribDescriptors.DiffuseTextureMesh,
+            [texture],
             false,
             false);
     }

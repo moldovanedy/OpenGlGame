@@ -102,6 +102,7 @@ public class Renderer
     private Matrix4 _individualProjectionMatrix = Matrix4.Identity;
 
     private PointLightData[] _pointLights = [];
+    private float _totalTime;
 
     private Cubemap? _skyboxCubemap;
     private MeshMaterial? _skyboxMaterial;
@@ -132,6 +133,8 @@ public class Renderer
 
     public void Render(ref RenderFrameData frameData)
     {
+        _totalTime += (float)frameData.DeltaTime;
+
         _commands.Sort((OperationBase x, OperationBase y) =>
         {
             if (x.OrderKey < y.OrderKey)
@@ -231,6 +234,7 @@ public class Renderer
 
                 drawOp.MeshMaterialDep.SetProperty("viewProjection", _viewProjectionMatrix);
                 drawOp.MeshMaterialDep.SetProperty("viewPos", frameData.CameraWorldPosition);
+                drawOp.MeshMaterialDep.SetProperty("time", _totalTime);
 
                 drawOp.MeshMaterialDep.SetProperty("lightCount", _pointLights.Length);
                 for (int i = 0; i < _pointLights.Length; i++)

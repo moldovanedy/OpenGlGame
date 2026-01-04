@@ -362,8 +362,24 @@ public class Level2Data : ILevelData
         ]);
     }
 
-    private static void AddPuzzleElements(List<GameObject> objects)
+    private void AddPuzzleElements(List<GameObject> objects)
     {
+        //activating doors
+        Door01 leftDoor = new(
+            new Transform3D
+            {
+                Position = new Vector3(-25.49f, 4.5f, 5.898f),
+                Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(-90f), 0f),
+                Scale = new Vector3(2.99f, 0.199f, 1.02f)
+            });
+        Door01 rightDoor = new(
+            new Transform3D
+            {
+                Position = new Vector3(-26.51f, 4.5f, 5.898f),
+                Rotation = new Quaternion(float.DegreesToRadians(90f), float.DegreesToRadians(90f), 0f),
+                Scale = new Vector3(2.99f, 0.199f, 1.02f)
+            });
+
         objects.AddRange([
             //cubes
             new Cube01(
@@ -402,8 +418,12 @@ public class Level2Data : ILevelData
                     Position = new Vector3(-24f, 3.4f, 13f),
                     Rotation = new Quaternion(0f, 0f, 0f),
                     Scale = new Vector3(1f, 1f, 1f)
-                })
+                }),
+            leftDoor,
+            rightDoor
         ]);
+
+        _callbacks.SetActivatingDoors(leftDoor, rightDoor);
     }
 
     private void AddEnemies(List<GameObject> objects)

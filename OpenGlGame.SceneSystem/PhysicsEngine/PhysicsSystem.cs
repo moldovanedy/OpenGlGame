@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenGlGame.Data;
 using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
+using OpenGlGame.SceneSystem.Prefabs.Misc;
 using OpenTK.Mathematics;
 
 namespace OpenGlGame.SceneSystem.PhysicsEngine;
@@ -30,11 +31,16 @@ public class PhysicsSystem
 
     private static PhysicsSystem? _instance;
 
+    public bool AreAllLandingAreasOccupied { get; private set; }
+
     public const double PHYSICS_TICK_SECONDS = 1.0 / 60.0;
 
     private readonly List<RigidBody> _rigidBodies = [];
     private readonly List<StaticCollider> _staticColliders = [];
     private readonly List<Interactable> _interactables = [];
+
+    private readonly List<CubeLandingArea> _cubeLandingAreas = [];
+    private readonly List<Cube01> _placeableCubes = [];
 
     private PhysicsSystem()
     {
@@ -101,8 +107,25 @@ public class PhysicsSystem
         }
     }
 
+    public void RecreatePlaceablesList(CubeLandingArea[] landingAreas, Cube01[] placeableCubes)
+    {
+        _cubeLandingAreas.Clear();
+        foreach (CubeLandingArea area in landingAreas)
+        {
+            _cubeLandingAreas.Add(area);
+        }
+
+        _placeableCubes.Clear();
+        foreach (Cube01 cube in placeableCubes)
+        {
+            _placeableCubes.Add(cube);
+        }
+    }
+
     public void PhysicsUpdate()
     {
+        CheckPlaceableCubes();
+
         lock (_rigidBodies)
         lock (_staticColliders)
         {
@@ -143,7 +166,6 @@ public class PhysicsSystem
 
                     if (Aabb.DoBoxesIntersect(rigidBody.InternalAaBoundingBox, otherRigidBody.InternalAaBoundingBox))
                     {
-                        // Console.WriteLine("RigidBody collided with RigidBody");
                         ResolveCollision(rigidBody, otherRigidBody);
                     }
                 }
@@ -312,6 +334,72 @@ public class PhysicsSystem
             Normal = hitNormal.Normalized(),
             HitPoint = origin + normalizedRayDirection * tHit
         };
+    }
+
+    private void CheckPlaceableCubes()
+    {
+        if (_cubeLandingAreas.Count == 0 || _placeableCubes.Count == 0)
+        {
+            AreAllLandingAreasOccupied = false;
+            return;
+        }
+
+        lock (_cubeLandingAreas)
+        lock (_placeableCubes)
+        {
+            bool areAllOccupied = true;
+            foreach (CubeLandingArea cubeLandingArea in _cubeLandingAreas)
+            {
+                var areaTransform = (Transform3D?)cubeLandingArea.Owner?.GetComponent(nameof(Transform3D));
+                if (areaTransform == null)
+                {
+                    throw new Exception("CubeLandingArea did not have a Transform3D component");
+                }
+
+                //check player
+                var playerRigidBody = (RigidBody?)Player.Instance.GetComponent(nameof(RigidBody));
+                if (playerRigidBody == null)
+                {
+                    throw new Exception("Player did not have a RigidBody component");
+                }
+
+                if (
+                    Aabb.DoBoxesIntersect(
+                        new Aabb(cubeLandingArea.BoundingBox, areaTransform.GetModelMatrix()),
+                        playerRigidBody.InternalAaBoundingBox))
+                {
+                    continue;
+                }
+
+                //check all cubes
+                bool isOccupied = false;
+                foreach (Cube01 cube in _placeableCubes)
+                {
+                    var cubeRigidBody = (RigidBody?)cube.GetComponent(nameof(RigidBody));
+                    if (cubeRigidBody == null)
+                    {
+                        throw new Exception("Cube01 did not have a RigidBody component");
+                    }
+
+                    if (
+                        Aabb.DoBoxesIntersect(
+                            new Aabb(cubeLandingArea.BoundingBox, areaTransform.GetModelMatrix()),
+                            cubeRigidBody.InternalAaBoundingBox))
+                    {
+                        isOccupied = true;
+                        break;
+                    }
+                }
+
+                cubeLandingArea.IsOccupied = isOccupied;
+                if (!isOccupied)
+                {
+                    areAllOccupied = false;
+                }
+            }
+
+            AreAllLandingAreasOccupied = areAllOccupied;
+        }
     }
 
     private static void ApplyGravity(RigidBody rigidBody)

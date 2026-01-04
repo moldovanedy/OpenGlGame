@@ -29,6 +29,9 @@ public class Btn02 : GameObject
         AddComponent(
             new StaticCollider(
                 new Aabb(new Vector3(-0.75f, -0.4f, -0.75f), new Vector3(1.5f, 0.2f, 1.5f))));
+        AddComponent(
+            new CubeLandingArea(
+                new Aabb(new Vector3(-0.5f, -0.2f, -0.5f), new Vector3(1f, 0.1f, 1f))));
 
         VertexBuffers? buffers =
             ResourceManager.Instance.GetVertexBuffers("/assets/models/btn_02/btn_02.glb.vert01")

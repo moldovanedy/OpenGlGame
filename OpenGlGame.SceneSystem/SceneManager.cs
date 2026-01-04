@@ -6,6 +6,7 @@ using OpenGlGame.Rendering.Resources;
 using OpenGlGame.SceneSystem.Character;
 using OpenGlGame.SceneSystem.Components;
 using OpenGlGame.SceneSystem.PhysicsEngine;
+using OpenGlGame.SceneSystem.Prefabs.Misc;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -80,6 +81,9 @@ public class SceneManager
             }
 
             List<PointLight> pointLights = [];
+            List<CubeLandingArea> landingAreas = [];
+            List<Cube01> placeableCubes = [];
+
             foreach (GameObject gameObject in gameObjects)
             {
                 IGameObjectComponent? pointLight = gameObject.GetComponent(nameof(PointLight));
@@ -87,12 +91,24 @@ public class SceneManager
                 {
                     pointLights.Add(light);
                 }
+
+                IGameObjectComponent? landingArea = gameObject.GetComponent(nameof(CubeLandingArea));
+                if (landingArea is CubeLandingArea area)
+                {
+                    landingAreas.Add(area);
+                }
+
+                if (gameObject is Cube01 cube)
+                {
+                    placeableCubes.Add(cube);
+                }
             }
 
             _cachedPointLights = pointLights.ToArray();
 
             PhysicsSystem.Instance.RecreatePhysicsComponentsLists(gameObjects);
             PhysicsSystem.Instance.RecreateInteractablesList(gameObjects);
+            PhysicsSystem.Instance.RecreatePlaceablesList(landingAreas.ToArray(), placeableCubes.ToArray());
         });
     }
 

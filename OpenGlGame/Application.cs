@@ -115,13 +115,6 @@ public class Application : IDisposable
         Player.Instance.GameCompleteEvent += () =>
         {
             GameCompleteScreen gameCompleteScreen = new();
-            gameCompleteScreen.RetryRequestedEvent += () =>
-            {
-                Player.Instance.ExitScene();
-                Player.Instance.EnterScene();
-                SetLevel(1);
-            };
-
             GameObject[] gameCompleteUiObj = gameCompleteScreen.LoadAndGetGameObjects();
             foreach (GameObject uiObj in gameCompleteUiObj)
             {

@@ -32,7 +32,7 @@ public class Flag : GameObject
             throw new NullReferenceException("Flag texture was not found");
         }
 
-        _material = CommonMaterials.CreateDiffuseLitMaterial(diffuseTex, hasBackfaceCulling: false);
+        _material = CommonMaterials.CreateWavingFlagMaterial(diffuseTex);
         AddComponent(new StaticCollider(_boundingBox));
         AddComponent(new Interactable(_boundingBox, OnFlagRaised));
 

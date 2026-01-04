@@ -21,5 +21,11 @@
         <None Include="assets\**" Exclude="assets\**\*.blend*">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="assets\shaders\waving_flag.vert">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="assets\shaders\waving_flag.frag">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>
