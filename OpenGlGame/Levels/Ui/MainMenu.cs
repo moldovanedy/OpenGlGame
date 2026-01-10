@@ -21,7 +21,7 @@ public class MainMenu : ILevelData
     {
         List<GameObject> objects = [];
         objects.AddRange([
-            //temporary background
+            //background
             new UiRect(
                 new Vector2(-1.0f, -1.0f),
                 new Vector2(2f, 2f))
@@ -29,6 +29,10 @@ public class MainMenu : ILevelData
                 Color = new Vector4(0x08 / 255f, 0x08 / 255f, 0x08 / 255f, 1.0f)
             },
 
+            new UiLogo(
+                new Vector2(-0.9f, -0.3f),
+                new Vector2(1.2f, 1.2f),
+                1),
             new UiButton(
                 new Vector2(0.38f, -0.4f),
                 new Vector2(0.6f, 0.25f),

@@ -29,6 +29,7 @@ public class Level3Data : ILevelData
 
         AddDelimiters(objects);
         AddFinishFlag(objects);
+        AddDecoRocks(objects);
         AddLights(objects);
 
         return objects.ToArray();
@@ -274,6 +275,132 @@ public class Level3Data : ILevelData
                 {
                     Position = new Vector3(-10f, 16f, -1.1f),
                     Rotation = new Quaternion(0f, 0f, float.DegreesToRadians(90f)),
+                    Scale = new Vector3(1f, 1f, 1f)
+                })
+        ]);
+    }
+
+    private static void AddDecoRocks(List<GameObject> objects)
+    {
+        objects.AddRange([
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(20f, -75f, -70f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(60f, -75f, -90f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(45f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(120f, -75f, -60f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(52f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(10f, -75f, -120f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(32f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(-30f, -78f, -100f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(-42f), 0f),
+                    Scale = new Vector3(0.7f, 0.7f, 0.7f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(-10f, -78f, -70f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(-42f), 0f),
+                    Scale = new Vector3(0.7f, 0.7f, 0.7f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(-110f, -75f, -120f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(-118f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock01(
+                new Transform3D
+                {
+                    Position = new Vector3(-130f, -75f, -20f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(-38f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(80f, -73f, -50f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(28f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(160f, -73f, -110f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(162f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(100f, -78f, -100f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(117f), 0f),
+                    Scale = new Vector3(0.7f, 0.7f, 0.7f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(140f, -78f, -20f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(5f), 0f),
+                    Scale = new Vector3(0.7f, 0.7f, 0.7f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(-40f, -75f, -50f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(-68f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(-70f, -82f, -70f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(61f), 0f),
+                    Scale = new Vector3(0.5f, 0.5f, 0.5f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(-75f, -82f, -120f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(3f), 0f),
+                    Scale = new Vector3(0.5f, 0.5f, 0.5f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(-100f, -75f, -60f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(132f), 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new DecoRock02(
+                new Transform3D
+                {
+                    Position = new Vector3(-150f, -75f, -100f),
+                    Rotation = new Quaternion(0f, float.DegreesToRadians(2f), 0f),
                     Scale = new Vector3(1f, 1f, 1f)
                 })
         ]);

@@ -180,7 +180,7 @@ public class Level2Callbacks
             return;
         }
 
-        const float OFFSET = 0.935f;
+        const float OFFSET = 1f;
         if (_isOpeningDoors)
         {
             _doorTimer += deltaTime;
@@ -190,8 +190,8 @@ public class Level2Callbacks
             _doorTimer -= deltaTime;
         }
 
-        float desiredLeftPos = _isClosingDoors ? LEFT_DOOR_BASE_X : LEFT_DOOR_BASE_X + OFFSET;
-        float desiredRightPos = _isClosingDoors ? RIGHT_DOOR_BASE_X : RIGHT_DOOR_BASE_X - OFFSET;
+        float desiredLeftPos = _isOpeningDoors ? LEFT_DOOR_BASE_X + OFFSET : LEFT_DOOR_BASE_X;
+        float desiredRightPos = _isOpeningDoors ? RIGHT_DOOR_BASE_X - OFFSET : RIGHT_DOOR_BASE_X;
 
         switch (_doorTimer)
         {
@@ -203,14 +203,14 @@ public class Level2Callbacks
                 float xPosLeft =
                     _isOpeningDoors
                         ? float.Lerp(LEFT_DOOR_BASE_X, desiredLeftPos, (float)_doorTimer * 2f)
-                        : float.Lerp(LEFT_DOOR_BASE_X - OFFSET - 0.145f, desiredLeftPos, (float)-_doorTimer * 2f);
+                        : float.Lerp(LEFT_DOOR_BASE_X - OFFSET, desiredLeftPos, (float)-_doorTimer * 2f);
                 leftDoorTransform.Position =
                     new Vector3(xPosLeft, leftDoorTransform.Position.Y, leftDoorTransform.Position.Z);
 
                 float xPosRight =
                     _isOpeningDoors
                         ? float.Lerp(RIGHT_DOOR_BASE_X, desiredRightPos, (float)_doorTimer * 2f)
-                        : float.Lerp(RIGHT_DOOR_BASE_X + OFFSET + 0.145f, desiredRightPos, (float)-_doorTimer * 2f);
+                        : float.Lerp(RIGHT_DOOR_BASE_X + OFFSET, desiredRightPos, (float)-_doorTimer * 2f);
                 rightDoorTransform.Position =
                     new Vector3(xPosRight, rightDoorTransform.Position.Y, rightDoorTransform.Position.Z);
                 break;

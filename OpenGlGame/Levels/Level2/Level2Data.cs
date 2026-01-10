@@ -412,10 +412,24 @@ public class Level2Data : ILevelData
                     Rotation = new Quaternion(0f, 0f, 0f),
                     Scale = new Vector3(1f, 1f, 1f)
                 }),
+            new PlacementVisual01(
+                new Transform3D
+                {
+                    Position = new Vector3(-35f, 4.0f, 13f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
             new Btn02(
                 new Transform3D
                 {
                     Position = new Vector3(-24f, 3.4f, 13f),
+                    Rotation = new Quaternion(0f, 0f, 0f),
+                    Scale = new Vector3(1f, 1f, 1f)
+                }),
+            new PlacementVisual01(
+                new Transform3D
+                {
+                    Position = new Vector3(-24f, 4.0f, 13f),
                     Rotation = new Quaternion(0f, 0f, 0f),
                     Scale = new Vector3(1f, 1f, 1f)
                 }),
