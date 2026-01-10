@@ -4,7 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
+        <PublishTrimmed>true</PublishTrimmed>
         <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
@@ -21,5 +21,10 @@
         <None Include="assets\**" Exclude="assets\**\*.blend*">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <TrimmerRootAssembly Include="OpenTK.Graphics" />
+        <TrimmerRootAssembly Include="OpenTK.Windowing.Desktop" />
     </ItemGroup>
 </Project>
